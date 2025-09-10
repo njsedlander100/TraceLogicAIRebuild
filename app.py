@@ -165,36 +165,36 @@ DEFAULT_IMAGE_PROMPT = """
 
 Based on the Product BOM analysis above and this image of the product, provide a detailed visual assessment that identifies:
 
-1. MATERIAL CORRECTIONS: Compare what you see in the image vs. the BOM analysis
-   - Identify materials that appear different from the BOM estimates
-   - Note any missing components visible in the image
-   - Estimate corrected material percentages by volume based on visual evidence
+1.  **MATERIAL CORRECTIONS**: Compare what you see in the image vs. the BOM analysis
+    * Identify materials that appear different from the BOM estimates
+    * Note any missing components visible in the image
+    * Estimate corrected material percentages by volume based on visual evidence
 
-2. STRUCTURAL ANALYSIS: Analyze the construction details visible
-   - Joint types, assembly methods, component thickness
-   - Surface treatments, coatings, finishes
-   - Any additional hardware or components not mentioned in BOM
+2.  **STRUCTURAL ANALYSIS**: Analyze the construction details visible
+    * Joint types, assembly methods, component thickness
+    * Surface treatments, coatings, finishes
+    * Any additional hardware or components not mentioned in BOM
 
-3. QUALITY INDICATORS: Visual cues about manufacturing
-   - Build quality, material thickness, construction type
-   - Any visible branding, labels, or country of origin marks
+3.  **QUALITY INDICATORS**: Visual cues about manufacturing
+    * Build quality, material thickness, construction type
+    * Any visible branding, labels, or country of origin marks
 
-4. MATERIAL PROPERTIES RESEARCH: For each material identified, research and provide:
-   - Material density (lb/ft³)
-   - Typical source countries for this material type
-   - Standard CO2 emissions factors (kg CO2e/kg) for sourcing/processing
-   - Manufacturing process CO2 emissions (kg CO2e/kg)
-   - Transportation CO2 factor (kg CO2e/kg-km)
-   - Distance from typical source country to USA (km)
+4.  **MATERIAL PROPERTIES RESEARCH**: For each material identified, research and provide:
+    * Material density (lb/ft³)
+    * Typical source countries for this material type
+    * Standard CO2 emissions factors (kg CO2e/kg) for sourcing/processing
+    * Manufacturing process CO2 emissions (kg CO2e/kg)
+    * Transportation CO2 factor (kg CO2e/kg-km)
+    * Distance from typical source country to **{country_of_origin}** (km)
 
-5. VOLUME PERCENTAGE ESTIMATION: Based on visual analysis, estimate the volume percentage each material represents of the total product
+5.  **VOLUME PERCENTAGE ESTIMATION**: Based on visual analysis, estimate the volume percentage each material represents of the total product
 
 **REQUIRED JSON OUTPUT WITH RESEARCHED DATA:**
 ```json
-{
+{{
   "total_weight_lbs": [Total Weight from previous analysis],
   "materials": [
-    {
+    {{
       "name": "[Material Name]",
       "volume_percentage": [Volume percentage of total product, must sum to 100],
       "density_lb_ft3": [Researched density value],
@@ -202,13 +202,13 @@ Based on the Product BOM analysis above and this image of the product, provide a
       "co2_sourcing_kg_per_kg": [Researched CO2 factor for material sourcing/processing],
       "co2_manufacturing_kg_per_kg": [Researched CO2 factor for manufacturing process],
       "co2_transport_kg_per_kg_km": [Researched transport CO2 factor, typically 0.000004-0.000015],
-      "distance_km": [Researched distance from source country to USA],
+      "distance_km": [Researched distance from source country to {country_of_origin}],
       "manufacturing_process": "[Research primary manufacturing process for this material]"
-    }
+    }}
   ],
   "total_volume_percentage": [Sum of all volume percentages - must equal 100],
   "confidence_level": "[High/Medium/Low] - based on visual clarity and research quality"
-}
+}}
 
 
 
@@ -1212,8 +1212,6 @@ HTML_TEMPLATE = """
                 addResult('Step 1: Category Research', analysisState.generalResearch, '🔍');
                 
                 // Step 2a: URL Retrieval 
-                // Step 2a: URL Retrieval 
-                // Step 2a: URL Retrieval 
                 showLoading('🔗 Step 2a/7: Retrieving product URLs...');
                 const urlSearchMethod = document.getElementById('url-search-method-select').value;
                 let urlResults;
@@ -1299,11 +1297,13 @@ HTML_TEMPLATE = """
                 if (analysisState.selectedImageUrls && analysisState.selectedImageUrls.length > 0) {
                     showLoading('📷 Step 3/6: Analyzing multiple product images...');
                     const visionLLM = document.getElementById('vision-llm-select').value;
+                    const countryOfOrigin = document.getElementById('country-of-origin-input').value.trim();
                     const imageData = await callAPI('/api/multi-image-analysis', {
                         imageUrls: analysisState.selectedImageUrls,
                         productBOM: analysisState.productBOM,
                         prompt: document.getElementById('image-prompt').value,
-                        visionLLM: visionLLM
+                        visionLLM: visionLLM,
+                        countryOfOrigin: countryOfOrigin
                     });
                     analysisState.imageAnalysis = imageData.result;
                     addResult('Step 3: Multi-Image Product Analysis', analysisState.imageAnalysis, '📷');
@@ -1311,7 +1311,7 @@ HTML_TEMPLATE = """
                     analysisState.imageAnalysis = 'No images provided - skipping visual analysis.';
                     addResult('Step 3: Multi-Image Product Analysis', 'No images selected - analysis will proceed without visual input.', '📷');
                 }
-
+        
                 // Step 3.5: Mathematical BOM Calculations
                 showLoading('🧮 Step 3.5/7: Calculating BOM mathematics using researched data...');
                 try {
@@ -1343,9 +1343,7 @@ HTML_TEMPLATE = """
                 
                 // Step 4: Final Product Assessment (formerly Final BOM Table)
                 showLoading('📊 Step 4/7: Creating final product assessment...');
-                // START: NEW - GET COUNTRY OF ORIGIN VALUE
                 const countryOfOrigin = document.getElementById('country-of-origin-input').value.trim();
-                // END: NEW
                 
                 const reconciliationData = await callAPI('/api/reconciliation', {
                     researchBOM: analysisState.productBOM,
@@ -2058,20 +2056,20 @@ def multi_image_analysis_api():
     product_bom = data.get('productBOM', '')
     prompt = data.get('prompt')
     vision_llm = data.get('visionLLM', 'openai')
+    # 👇 NEW: Accepts the country of origin, defaulting to 'USA' if not provided
+    country_of_origin = data.get('countryOfOrigin', 'USA') 
     
     if not image_urls or len(image_urls) == 0:
         return jsonify({'error': 'No image URLs provided'}), 400
     
-    # For now, just use the first image (simplest solution)
-    # Later we can enhance this to handle multiple images
     first_image_url = image_urls[0]
     
-    # Construct the full prompt with context
+    # 👇 UPDATED: The prompt is now formatted with the correct country of origin
     full_prompt = f"""PRODUCT BOM ANALYSIS CONTEXT:
 {product_bom}
 
 MULTI-IMAGE ANALYSIS TASK:
-{prompt}
+{prompt.format(country_of_origin=country_of_origin)}
 
 You are analyzing {len(image_urls)} images of the same product. Please provide a comprehensive assessment based on the visual evidence.
 
@@ -2083,7 +2081,6 @@ Images provided: {len(image_urls)} product images from different angles."""
         elif vision_llm == 'claude':
             result = call_claude_vision_api(full_prompt, first_image_url)
         elif vision_llm == 'perplexity':
-            # Perplexity fallback - use OpenAI if available
             result = call_openai_vision_api(full_prompt, first_image_url)
         else:
             return jsonify({'error': f'Unknown vision LLM: {vision_llm}'}), 400
