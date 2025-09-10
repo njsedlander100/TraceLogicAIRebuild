@@ -270,6 +270,7 @@ Part | Material | Material Source Country | Volume Percentage (%) | Published Ma
 **System Boundary**
 Cradle-to-Gate assessment includes all materials sourced and processed, transported to manufacturing facility, manufactured and assembled, and transported to nearest port in USA.
 
+
 **Product URL Match:**
 [List 3-4 verified URLs from the product research]
 
