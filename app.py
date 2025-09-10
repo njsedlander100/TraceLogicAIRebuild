@@ -181,13 +181,12 @@ Based on the Product BOM analysis above and this image of the product, provide a
 
 4.  **MATERIAL PROPERTIES RESEARCH**: For each material identified, research and provide:
     * Material density (lb/ft³)
-    * **CRITICAL LOGIC:** Assume material source countries are geographically and economically close to the manufacturing Country of Origin. For example, if manufacturing is in the Philippines, source materials from China, Vietnam, or other nearby industrial countries, NOT from the USA or Europe.
+    * **CRITICAL LOGIC:** Assume material source countries are geographically and economically close to the manufacturing Country of Origin ({country_of_origin}).
     * Typical source countries for this material type (following the logic above).
     * Standard CO2 emissions factors (kg CO2e/kg) for sourcing/processing
     * Manufacturing process CO2 emissions (kg CO2e/kg)
     * Transportation CO2 factor (kg CO2e/kg-km)
-    * Distance from the logical source country to **{country_of_origin}** (km)
-
+    * **DISTANCE CALCULATION:** Calculate a two-part journey. First, find the distance from the logical source country to **{country_of_origin}**. Second, find the distance from **{country_of_origin}** to the **USA**. Provide the SUM of these two distances.
 
 5.  **VOLUME PERCENTAGE ESTIMATION**: Based on visual analysis, estimate the volume percentage each material represents of the total product
 
@@ -204,14 +203,13 @@ Based on the Product BOM analysis above and this image of the product, provide a
       "co2_sourcing_kg_per_kg": [Researched CO2 factor for material sourcing/processing],
       "co2_manufacturing_kg_per_kg": [Researched CO2 factor for manufacturing process],
       "co2_transport_kg_per_kg_km": [Researched transport CO2 factor, typically 0.000004-0.000015],
-      "distance_km": [Researched distance from source country to {country_of_origin}],
+      "distance_km": [SUM of distance from source country to {country_of_origin} AND distance from {country_of_origin} to USA],
       "manufacturing_process": "[Research primary manufacturing process for this material]"
     }}
   ],
   "total_volume_percentage": [Sum of all volume percentages - must equal 100],
   "confidence_level": "[High/Medium/Low] - based on visual clarity and research quality"
 }}
-
 
 
 
@@ -270,7 +268,6 @@ Part | Material | Material Source Country | Volume Percentage (%) | Published Ma
 **System Boundary**
 Cradle-to-Gate assessment includes all materials sourced and processed, transported to manufacturing facility, manufactured and assembled, and transported to nearest port in USA.
 
-
 **Product URL Match:**
 [List 3-4 verified URLs from the product research]
 
@@ -303,6 +300,9 @@ Use these standard reference sources and include them at the bottom:
 [5] NREL Transportation Database: transport emission factors
 
 IMPORTANT: Use the pre-calculated density-based mathematical data throughout this assessment. The system has computed all weights using volume percentages multiplied by material densities to create a more accurate weight distribution than volume alone. Material weights are calculated from each material's percentage of total volume-density. For the Product Weight column, use the same total product weight value for all rows.
+
+
+
 
 
 
@@ -1973,27 +1973,15 @@ def reconciliation_api():
     country_of_origin = data.get('countryOfOrigin', '')
 
     current_date = datetime.now().strftime('%B %d, %Y')
-    modified_prompt = prompt.replace('[Current date]', current_date)
+    prompt_with_date = prompt.replace('[Current date]', current_date)
 
+    # This logic remains to ensure the user-specified country is used in the report text
     override_instruction = ""
     if country_of_origin:
-        # Instruction for the AI to use the user's country input
         override_instruction = f"**USER OVERRIDE:** The user has specified the Country of Origin as **'{country_of_origin}'**. You MUST use this value for the 'Country of Origin' field in the assessment, overriding any country found during your own research.\n\n"
-        
-        # Replace placeholders in the prompt
-        modified_prompt = modified_prompt.replace('[Manufacturing country from research]', country_of_origin)
-        
-        # 👇 FIX 1: Correct the table header to remove the unnecessary "-> USA" leg
-        modified_prompt = modified_prompt.replace(
-            'Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)', 
-            f'Material Journey Distance (Km, Material Source Country-to-{country_of_origin})'
-        )
-        
-        # 👇 FIX 2: Correct the System Boundary description
-        modified_prompt = modified_prompt.replace(
-            'transported to nearest port in USA', 
-            f'transported to the manufacturing facility in {country_of_origin}'
-        )
+        prompt_with_date = prompt_with_date.replace('[Manufacturing country from research]', country_of_origin)
+    
+    # The header and system boundary are no longer changed, ensuring they always refer to the full ...to-USA journey
 
     full_prompt = f"""{override_instruction}GENERAL PRODUCT KNOWLEDGE:
 {general_research}
@@ -2007,7 +1995,7 @@ IMAGE ANALYSIS FINDINGS:
 CALCULATED MATHEMATICAL DATA (Use this for all quantitative values):
 {calculated_bom}
 
-{modified_prompt}"""
+{prompt_with_date}"""
     
     try:
         result = call_llm_api(full_prompt, llm_choice, force_web_capable=False)
