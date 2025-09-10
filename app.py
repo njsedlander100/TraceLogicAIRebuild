@@ -1967,21 +1967,29 @@ def reconciliation_api():
     general_research = data.get('generalResearch', '')
     prompt = data.get('prompt')
     llm_choice = data.get('llm', 'perplexity')
-    # START: NEW - Get the user-provided Country of Origin
     country_of_origin = data.get('countryOfOrigin', '')
-    # END: NEW
 
     current_date = datetime.now().strftime('%B %d, %Y')
-    prompt_with_date = prompt.replace('[Current date]', current_date)
+    
+    # Start with the base prompt from the textarea
+    modified_prompt = prompt.replace('[Current date]', current_date)
 
-    # START: NEW - Handle the Country of Origin override logic
+    # This instruction is sent to the AI
     override_instruction = ""
+    
+    # If the user typed a country (e.g., "Philippines")
     if country_of_origin:
         # Create an instruction to prepend to the main prompt
         override_instruction = f"**USER OVERRIDE:** The user has specified the Country of Origin as **'{country_of_origin}'**. You MUST use this value for the 'Country of Origin' field in the assessment, overriding any country found during your own research.\n\n"
+        
         # Directly replace the placeholder in the prompt template
-        prompt_with_date = prompt_with_date.replace('[Manufacturing country from research]', country_of_origin)
-    # END: NEW
+        modified_prompt = modified_prompt.replace('[Manufacturing country from research]', country_of_origin)
+        
+        # 👇 NEW FIX: Dynamically replace the hardcoded "to-USA" in the table header
+        modified_prompt = modified_prompt.replace(
+            'Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)', 
+            f'Material Journey Distance (Km, Material Source Country-to-{country_of_origin})'
+        )
 
     full_prompt = f"""{override_instruction}GENERAL PRODUCT KNOWLEDGE:
 {general_research}
@@ -1995,7 +2003,7 @@ IMAGE ANALYSIS FINDINGS:
 CALCULATED MATHEMATICAL DATA (Use this for all quantitative values):
 {calculated_bom}
 
-{prompt_with_date}"""
+{modified_prompt}"""
     
     try:
         # Reconciliation doesn't need web access, so use selected LLM
