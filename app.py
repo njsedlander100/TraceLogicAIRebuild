@@ -181,11 +181,13 @@ Based on the Product BOM analysis above and this image of the product, provide a
 
 4.  **MATERIAL PROPERTIES RESEARCH**: For each material identified, research and provide:
     * Material density (lb/ft³)
-    * Typical source countries for this material type
+    * **CRITICAL LOGIC:** Assume material source countries are geographically and economically close to the manufacturing Country of Origin. For example, if manufacturing is in the Philippines, source materials from China, Vietnam, or other nearby industrial countries, NOT from the USA or Europe.
+    * Typical source countries for this material type (following the logic above).
     * Standard CO2 emissions factors (kg CO2e/kg) for sourcing/processing
     * Manufacturing process CO2 emissions (kg CO2e/kg)
     * Transportation CO2 factor (kg CO2e/kg-km)
-    * Distance from typical source country to **{country_of_origin}** (km)
+    * Distance from the logical source country to **{country_of_origin}** (km)
+
 
 5.  **VOLUME PERCENTAGE ESTIMATION**: Based on visual analysis, estimate the volume percentage each material represents of the total product
 
@@ -1970,25 +1972,26 @@ def reconciliation_api():
     country_of_origin = data.get('countryOfOrigin', '')
 
     current_date = datetime.now().strftime('%B %d, %Y')
-    
-    # Start with the base prompt from the textarea
     modified_prompt = prompt.replace('[Current date]', current_date)
 
-    # This instruction is sent to the AI
     override_instruction = ""
-    
-    # If the user typed a country (e.g., "Philippines")
     if country_of_origin:
-        # Create an instruction to prepend to the main prompt
+        # Instruction for the AI to use the user's country input
         override_instruction = f"**USER OVERRIDE:** The user has specified the Country of Origin as **'{country_of_origin}'**. You MUST use this value for the 'Country of Origin' field in the assessment, overriding any country found during your own research.\n\n"
         
-        # Directly replace the placeholder in the prompt template
+        # Replace placeholders in the prompt
         modified_prompt = modified_prompt.replace('[Manufacturing country from research]', country_of_origin)
         
-        # 👇 NEW FIX: Dynamically replace the hardcoded "to-USA" in the table header
+        # 👇 FIX 1: Correct the table header to remove the unnecessary "-> USA" leg
         modified_prompt = modified_prompt.replace(
             'Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)', 
             f'Material Journey Distance (Km, Material Source Country-to-{country_of_origin})'
+        )
+        
+        # 👇 FIX 2: Correct the System Boundary description
+        modified_prompt = modified_prompt.replace(
+            'transported to nearest port in USA', 
+            f'transported to the manufacturing facility in {country_of_origin}'
         )
 
     full_prompt = f"""{override_instruction}GENERAL PRODUCT KNOWLEDGE:
@@ -2006,7 +2009,6 @@ CALCULATED MATHEMATICAL DATA (Use this for all quantitative values):
 {modified_prompt}"""
     
     try:
-        # Reconciliation doesn't need web access, so use selected LLM
         result = call_llm_api(full_prompt, llm_choice, force_web_capable=False)
         return jsonify({'result': result})
     except Exception as e:
