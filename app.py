@@ -28,10 +28,11 @@ Follow the below steps:
 Research the typical materials, components, and construction details for this general product category. Include:
 1) Common materials used in manufacturing (metals, fabrics, plastics, etc.)
 2) Standard components that are always present but might not be explicitly mentioned (handles, coatings, fasteners, etc.)
-3) Typical weight ranges and material percentages by volume for products in this category
-4) Common manufacturing countries and material source countries
-5) Standard construction methods and material densities
-6) Any specialized components or materials specific to this product type
+3) Typical total product weight ranges for products in this category
+4) Typical parts and percentages by volume in this category (must be volume and not weight)
+5) Common manufacturing countries and material source countries
+6) Standard construction methods and material densities
+7) Any specialized components or materials specific to this product type
 Provide this as comprehensive baseline knowledge that can be used to enhance analysis of specific products in this category.
 
 DO NOT CREATE ANY TABLES. ONLY PROVIDE TEXT ANALYSIS.
