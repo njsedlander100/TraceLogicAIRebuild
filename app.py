@@ -870,10 +870,8 @@ HTML_TEMPLATE = """
             let totalSourcingCO2 = 0;
             let totalManufacturingCO2 = 0;
             let totalTransportationCO2 = 0;
-            let totalCO2 = 0;
+            let totalEndOfLifeCO2 = 0;
             
-            // Updated totals calculation section in tryConvertToTable function
-            // Updated totals calculation section in tryConvertToTable function
             headers.forEach((header, index) => {
                 let sum = 0;
                 let hasNumbers = false;
@@ -893,23 +891,26 @@ HTML_TEMPLATE = """
                             totalManufacturingCO2 += numericValue;
                         } else if (header === 'Material Part Journey Carbon Footprint (Kg CO2e)') {
                             totalTransportationCO2 += numericValue;
+                        } else if (header === 'Material End of LIfe Carbon Footprint (Kg CO2e)'){
+                            totalEndOfLifeCO2 += numericValue;
                         }
                     }
                 });
                 
-                // ONLY calculate totals for these specific columns (removed weight percentage)
+                // ONLY calculate totals for these specific columns
                 const shouldTotal = header.includes('Material Part Weight (Lbs)') ||
                                    header.includes('Material Part Weight (Kg)') ||
                                    header.includes('Volume Percentage') ||
                                    header.includes('Material Part Sourcing and Processing Carbon Footprint') ||
                                    header.includes('Material Part Mfg Process Carbon Footprint') ||
-                                   header.includes('Material Part Journey Carbon Footprint');
+                                   header.includes('Material Part Journey Carbon Footprint') ||
+                                   header.includes('Material End of LIfe Carbon Footprint'); // Added EoL
                 
                 totals[header] = (shouldTotal && hasNumbers) ? sum.toFixed(4) : '';
             });
             
             // Calculate comprehensive total CO2
-            const comprehensiveTotalCO2 = totalSourcingCO2 + totalManufacturingCO2 + totalTransportationCO2 + totalCO2;
+            const comprehensiveTotalCO2 = totalSourcingCO2 + totalManufacturingCO2 + totalTransportationCO2 + totalEndOfLifeCO2;
             
             // Generate unique table ID for export
             const tableId = 'bom-table-' + Math.random().toString(36).substr(2, 9);
@@ -968,7 +969,7 @@ HTML_TEMPLATE = """
                             ${totalSourcingCO2 > 0 ? `<div class="co2-item">📦 Sourcing & Processing: <strong>${totalSourcingCO2.toFixed(4)} kg CO₂</strong></div>` : ''}
                             ${totalManufacturingCO2 > 0 ? `<div class="co2-item">🏭 Manufacturing: <strong>${totalManufacturingCO2.toFixed(4)} kg CO₂</strong></div>` : ''}
                             ${totalTransportationCO2 > 0 ? `<div class="co2-item">🚛 Transportation: <strong>${totalTransportationCO2.toFixed(4)} kg CO₂</strong></div>` : ''}
-                            ${totalCO2 > 0 ? `<div class="co2-item">🌿 Other Emissions: <strong>${totalCO2.toFixed(4)} kg CO₂</strong></div>` : ''}
+                            ${totalEndOfLifeCO2 > 0 ? `<div class="co2-item">🗑️ End of Life: <strong>${totalEndOfLifeCO2.toFixed(4)} kg CO₂</strong></div>` : ''}
                         </div>
                         <div class="co2-total">
                             <strong>🎯 TOTAL PRODUCT CARBON FOOTPRINT: ${comprehensiveTotalCO2.toFixed(4)} kg CO₂</strong>
@@ -1394,12 +1395,14 @@ def calculate_bom_math(materials_data, total_product_weight_lbs):
     """Calculate all mathematical BOM fields using volume percentages and material densities"""
     
     # Emission factors for different transport methods (kg CO2e per kg-km)
+    # Keywords are lowercase for robust matching
     TRANSPORT_EMISSION_FACTORS = {
-        "Ocean Freight": 0.000011,
-        "Air Freight": 0.00113,
-        "Rail": 0.000025,
-        "Truck": 0.000098
+        "ocean": 0.000011, # Covers "Ocean Freight", "Shipping", etc.
+        "air": 0.00113,   # Covers "Air Freight"
+        "rail": 0.000025,  # Covers "Rail", "Rail Transport"
+        "truck": 0.000098 # Covers "Truck", "Road"
     }
+    DEFAULT_TRANSPORT_FACTOR = TRANSPORT_EMISSION_FACTORS["ocean"]
 
     try:
         results = []
@@ -1440,10 +1443,13 @@ def calculate_bom_math(materials_data, total_product_weight_lbs):
                 co2_manufacturing_rate = float(material.get('co2_manufacturing_kg_per_kg', 0))
                 distance_km = float(material.get('distance_km', 0))
 
-                # --- DYNAMIC TRANSPORT CALCULATION ---
-                transport_method = material.get('transport_method', 'Ocean Freight')
-                # Find the factor, defaulting to Ocean Freight if not found
-                co2_transport_rate = TRANSPORT_EMISSION_FACTORS.get(transport_method, TRANSPORT_EMISSION_FACTORS["Ocean Freight"])
+                # --- ROBUST DYNAMIC TRANSPORT CALCULATION ---
+                transport_method_str = material.get('transport_method', 'Ocean Freight').lower()
+                co2_transport_rate = DEFAULT_TRANSPORT_FACTOR
+                for keyword, factor in TRANSPORT_EMISSION_FACTORS.items():
+                    if keyword in transport_method_str:
+                        co2_transport_rate = factor
+                        break
                 
                 # Calculate CO2 emissions
                 sourcing_co2 = material_weight_kg * co2_sourcing_rate
@@ -1470,8 +1476,8 @@ def calculate_bom_math(materials_data, total_product_weight_lbs):
                     'distance_km': distance_km,
                     'co2_sourcing_kg_per_kg': co2_sourcing_rate,
                     'co2_manufacturing_kg_per_kg': co2_manufacturing_rate,
-                    'co2_transport_kg_per_kg_km': co2_transport_rate, # Now dynamic
-                    'transport_method': transport_method, # Pass to results
+                    'co2_transport_kg_per_kg_km': co2_transport_rate,
+                    'transport_method': material.get('transport_method', 'Ocean Freight'),
                     'sourcing_co2': round(sourcing_co2, 4),
                     'manufacturing_co2': round(manufacturing_co2, 4),
                     'transport_co2': round(transport_co2, 4),
