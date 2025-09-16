@@ -203,7 +203,7 @@ Based on the Product BOM analysis above and this image of the product, provide a
       "source_country": "[Primary source country - research typical sources]",
       "co2_sourcing_kg_per_kg": [Researched CO2 factor for material sourcing/processing],
       "co2_manufacturing_kg_per_kg": [Researched CO2 factor for manufacturing process],
-      "co2_transport_kg_per_kg_km": [Researched transport CO2 factor, typically 0.000004-0.000015],
+      "transport_method": "[Research typical method e.g., Ocean Freight, Air Freight, Rail]",
       "distance_km": [SUM of distance from source country to {country_of_origin} AND distance from {country_of_origin} to USA],
       "manufacturing_process": "[Research primary manufacturing process for this material]"
     }}
@@ -253,7 +253,7 @@ Create a comprehensive professional assessment following this EXACT format and s
 **Bill of Materials (BOM) and Material/Energy Flows**
 Create a table using the CALCULATED MATHEMATICAL DATA provided. Use these EXACT columns (use | delimiters):
 
-Part | Material | Material Source Country | Volume Percentage (%) | Published Material Density (lb/ft^3) | Material Volume Density | Volume Density Percentage (%) | Product Weight (lbs) | Material Part Weight (Lbs) | Material Part Weight (Kg) | Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight) | Sourcing and Processing Carbon Footprint Reference | Material Part Sourcing and Processing Carbon Footprint (Kg CO2e) | Material Mfg Process | Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight) | Mfg Process Carbon Footprint Reference | Material Part Mfg Process Carbon Footprint (Kg CO2e) | Material Journey Method | Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA) | Transport. Published Carbon Footprint (Kg CO2e/Kg-Km) | Transport. Carbon Footprint Reference | Material Part Journey Carbon Footprint (Kg CO2e)
+Part | Material | Material Source Country | Volume Percentage (%) | Published Material Density (lb/ft^3) | Material Volume Density | Volume Density Percentage (%) | Product Weight (lbs) | Material Part Weight (Lbs) | Material Part Weight (Kg) | Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight) | Sourcing and Processing Carbon Footprint Reference | Material Part Sourcing and Processing Carbon Footprint (Kg CO2e) | Material Mfg Process | Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight) | Mfg Process Carbon Footprint Reference | Material Part Mfg Process Carbon Footprint (Kg CO2e) | Material Journey Method | Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA) | Transport. Published Carbon Footprint (Kg CO2e/Kg-Km) | Transport. Carbon Footprint Reference | Material Part Journey Carbon Footprint (Kg CO2e) | Material End of Life | Published End of Life Carbon Footprint (Kg CO2e/Kg weight) | End of Life Carbon Footprint Reference | Material End of LIfe Carbon Footprint (Kg CO2e)
 
 **CRITICAL TABLE REQUIREMENTS:**
 - Use the pre-calculated mathematical data from the calculation step
@@ -267,7 +267,7 @@ Part | Material | Material Source Country | Volume Percentage (%) | Published Ma
 - Use the total product weight from earlier steps for the Product Weight column
 
 **System Boundary**
-Cradle-to-Gate assessment includes all materials sourced and processed, transported to manufacturing facility, manufactured and assembled, and transported to nearest port in USA.
+Cradle-to-Gate assessment includes all materials sourced and processed, transported to manufacturing facility, manufactured and assembled, and transported to nearest port in USA. End of life landfill emissions are also included.
 
 **Product URL Match:**
 [List 3-4 verified URLs from the product research]
@@ -299,6 +299,7 @@ Use these standard reference sources and include them at the bottom:
 [3] EPA Manufacturing Database: US manufacturing energy data
 [4] IMO GHG Studies: shipping emission factors
 [5] NREL Transportation Database: transport emission factors
+[6] EPA GHG Emission Factor Hub: end of life treatment of sold products.
 
 IMPORTANT: Use the pre-calculated density-based mathematical data throughout this assessment. The system has computed all weights using volume percentages multiplied by material densities to create a more accurate weight distribution than volume alone. Material weights are calculated from each material's percentage of total volume-density. For the Product Weight column, use the same total product weight value for all rows.
 
@@ -1392,11 +1393,20 @@ HTML_TEMPLATE = """
 def calculate_bom_math(materials_data, total_product_weight_lbs):
     """Calculate all mathematical BOM fields using volume percentages and material densities"""
     
+    # Emission factors for different transport methods (kg CO2e per kg-km)
+    TRANSPORT_EMISSION_FACTORS = {
+        "Ocean Freight": 0.000011,
+        "Air Freight": 0.00113,
+        "Rail": 0.000025,
+        "Truck": 0.000098
+    }
+
     try:
         results = []
         total_sourcing_co2 = 0
         total_manufacturing_co2 = 0
         total_transport_co2 = 0
+        total_end_of_life_co2 = 0
         total_calculated_weight = 0
         total_volume_percentage = 0
         total_volume_density = 0
@@ -1406,8 +1416,6 @@ def calculate_bom_math(materials_data, total_product_weight_lbs):
             try:
                 volume_percentage = float(material.get('volume_percentage', 0))
                 density_lb_ft3 = float(material.get('density_lb_ft3', 0))
-                
-                # Calculate volume density for this material
                 material_volume_density = (volume_percentage / 100) * density_lb_ft3
                 total_volume_density += material_volume_density
                 total_volume_percentage += volume_percentage
@@ -1420,41 +1428,35 @@ def calculate_bom_math(materials_data, total_product_weight_lbs):
         # Second pass: calculate actual weights using density distribution
         for material in materials_data:
             try:
-                # Get researched values from image analysis
                 volume_percentage = float(material.get('volume_percentage', 0))
                 density_lb_ft3 = float(material.get('density_lb_ft3', 0))
-                
-                # Calculate material volume density
                 material_volume_density = (volume_percentage / 100) * density_lb_ft3
-                
-                # Calculate material volume density percentage of total
                 volume_density_percentage = (material_volume_density / total_volume_density * 100) if total_volume_density > 0 else 0
-                
-                # Calculate material weight using density-based distribution
                 material_weight_lbs = total_product_weight_lbs * (volume_density_percentage / 100)
                 material_weight_kg = material_weight_lbs * 0.453592
-                
-                # Add to totals
                 total_calculated_weight += material_weight_lbs
                 
-                # Use researched CO2 values from image analysis
                 co2_sourcing_rate = float(material.get('co2_sourcing_kg_per_kg', 0))
                 co2_manufacturing_rate = float(material.get('co2_manufacturing_kg_per_kg', 0))
-                co2_transport_rate = float(material.get('co2_transport_kg_per_kg_km', 0))
                 distance_km = float(material.get('distance_km', 0))
+
+                # --- DYNAMIC TRANSPORT CALCULATION ---
+                transport_method = material.get('transport_method', 'Ocean Freight')
+                # Find the factor, defaulting to Ocean Freight if not found
+                co2_transport_rate = TRANSPORT_EMISSION_FACTORS.get(transport_method, TRANSPORT_EMISSION_FACTORS["Ocean Freight"])
                 
                 # Calculate CO2 emissions
                 sourcing_co2 = material_weight_kg * co2_sourcing_rate
                 manufacturing_co2 = material_weight_kg * co2_manufacturing_rate
                 transport_co2 = material_weight_kg * distance_km * co2_transport_rate
-                total_material_co2 = sourcing_co2 + manufacturing_co2 + transport_co2
+                end_of_life_co2 = material_weight_kg * 0.02
+                total_material_co2 = sourcing_co2 + manufacturing_co2 + transport_co2 + end_of_life_co2
                 
-                # Add to totals
                 total_sourcing_co2 += sourcing_co2
                 total_manufacturing_co2 += manufacturing_co2
                 total_transport_co2 += transport_co2
+                total_end_of_life_co2 += end_of_life_co2
                 
-                # Create result entry with all calculated fields
                 result_material = {
                     'name': material.get('name', ''),
                     'volume_percentage': round(volume_percentage, 2),
@@ -1468,34 +1470,35 @@ def calculate_bom_math(materials_data, total_product_weight_lbs):
                     'distance_km': distance_km,
                     'co2_sourcing_kg_per_kg': co2_sourcing_rate,
                     'co2_manufacturing_kg_per_kg': co2_manufacturing_rate,
-                    'co2_transport_kg_per_kg_km': co2_transport_rate,
+                    'co2_transport_kg_per_kg_km': co2_transport_rate, # Now dynamic
+                    'transport_method': transport_method, # Pass to results
                     'sourcing_co2': round(sourcing_co2, 4),
                     'manufacturing_co2': round(manufacturing_co2, 4),
                     'transport_co2': round(transport_co2, 4),
+                    'end_of_life_co2': round(end_of_life_co2, 4),
                     'total_material_co2': round(total_material_co2, 4)
                 }
-                
                 results.append(result_material)
                 
             except (ValueError, TypeError) as e:
                 raise Exception(f"Error calculating data for material {material.get('name', 'Unknown')}: {e}")
         
-        # Calculate comprehensive totals
-        total_co2 = total_sourcing_co2 + total_manufacturing_co2 + total_transport_co2
+        total_co2 = total_sourcing_co2 + total_manufacturing_co2 + total_transport_co2 + total_end_of_life_co2
         weight_difference = total_product_weight_lbs - total_calculated_weight
         
         return {
             'materials': results,
             'totals': {
-                'product_weight_lbs': total_product_weight_lbs,  # From earlier steps
-                'calculated_material_weight_lbs': round(total_calculated_weight, 4),  # Sum from density calculations
-                'weight_difference_lbs': round(weight_difference, 4),  # Accuracy check
+                'product_weight_lbs': total_product_weight_lbs,
+                'calculated_material_weight_lbs': round(total_calculated_weight, 4),
+                'weight_difference_lbs': round(weight_difference, 4),
                 'total_volume_percentage': round(total_volume_percentage, 4),
                 'total_volume_density': round(total_volume_density, 4),
                 'total_weight_kg': round(total_product_weight_lbs * 0.453592, 4),
                 'total_sourcing_co2': round(total_sourcing_co2, 4),
                 'total_manufacturing_co2': round(total_manufacturing_co2, 4),
                 'total_transport_co2': round(total_transport_co2, 4),
+                'total_end_of_life_co2': round(total_end_of_life_co2, 4),
                 'total_co2': round(total_co2, 4),
                 'materials_count': len(results)
             },
@@ -1503,7 +1506,8 @@ def calculate_bom_math(materials_data, total_product_weight_lbs):
                 'sourcing_percentage': round((total_sourcing_co2 / total_co2 * 100) if total_co2 > 0 else 0, 2),
                 'manufacturing_percentage': round((total_manufacturing_co2 / total_co2 * 100) if total_co2 > 0 else 0, 2),
                 'transport_percentage': round((total_transport_co2 / total_co2 * 100) if total_co2 > 0 else 0, 2),
-                'volume_total_check': round(total_volume_percentage, 2),  # Should be close to 100%
+                'end_of_life_percentage': round((total_end_of_life_co2 / total_co2 * 100) if total_co2 > 0 else 0, 2),
+                'volume_total_check': round(total_volume_percentage, 2),
                 'density_accuracy': round(((total_calculated_weight / total_product_weight_lbs) * 100) if total_product_weight_lbs > 0 else 0, 2)
             }
         }
