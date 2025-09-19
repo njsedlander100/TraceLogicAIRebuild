@@ -1084,7 +1084,7 @@ HTML_TEMPLATE = """
 
             // --- 3. BUILD THE PDF ---
             // Add Header Text
-            doc.setFontSize(10);
+            doc.setFontSize(8); // <-- CHANGE THIS to 8
             doc.text(headerText, 15, 20);
 
             // Add BOM Table
@@ -1108,7 +1108,7 @@ HTML_TEMPLATE = """
 
             // Add Footer Text
             const footerStartY = doc.lastAutoTable.finalY + 10;
-            doc.setFontSize(8);
+            doc.setFontSize(7); // <-- CHANGE THIS to 7
             doc.text(footerText, 15, footerStartY, { maxWidth: 180 });
 
             // --- 4. SAVE THE PDF ---
