@@ -804,9 +804,13 @@ HTML_TEMPLATE = """
             } else if (isStep4) {
                 // For Step 4, separate table from methodology text
                 const { tableHTML, methodologyText } = separateTableAndText(content);
-                
+
+                // **CRITICAL**: This line stores the raw content in a hidden div for the PDF export
+                const rawContentHTML = `<div class="raw-step4-content" style="display:none;">${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`;
+
                 result.innerHTML = `
                     <h3>${emoji} ${title}</h3>
+                    ${rawContentHTML} 
                     ${tableHTML ? `<div class="table-container">${tableHTML}</div>` : ''}
                     ${methodologyText ? `<pre>${methodologyText}</pre>` : `<pre>${content}</pre>`}
                 `;
@@ -1031,18 +1035,20 @@ HTML_TEMPLATE = """
             // Use jsPDF in landscape mode to give more room for the table
             const doc = new jsPDF({ orientation: 'landscape' });
 
-            // --- 1. GATHER DATA (This part remains the same) ---
+            // --- 1. GATHER DATA FROM THE PAGE ---
             let headerText = '';
             let footerText = '';
             const step4Result = Array.from(document.querySelectorAll('.result h3')).find(h3 => h3.textContent.includes('Step 4: Final Product Assessment'))?.parentElement;
 
             if (step4Result) {
+                // This now correctly finds the hidden div created by addResult
                 const rawContentDiv = step4Result.querySelector('.raw-step4-content');
                 if (!rawContentDiv) {
                     alert("Could not find the raw assessment text. The page structure might have changed.");
                     return;
                 }
                 const fullContent = rawContentDiv.textContent; 
+                
                 const bomTitle = 'Bill of Materials (BOM) and Material/Energy Flows';
                 const systemBoundaryTitle = 'System Boundary';
 
