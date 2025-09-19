@@ -917,9 +917,12 @@ HTML_TEMPLATE = """
             
             // Generate HTML table with export button and better styling
             let tableHTML = `
-                <div class="table-header">
+                <div class="table-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h4>📊 Bill of Materials</h4>
-                    <button class="export-button" onclick="exportTableCSV('${tableId}')">📥 Export CSV</button>
+                    <div>
+                        <button class="export-button" onclick="exportTableCSV('${tableId}')" style="padding: 5px 10px; cursor: pointer; margin-right: 5px;">📥 Export CSV</button>
+                        <button class="export-button" onclick="exportPageHTML()" style="padding: 5px 10px; cursor: pointer;">📄 Export HTML</button>
+                    </div>
                 </div>
                 <table id="${tableId}" class="data-table" style="width: 100%; border-collapse: collapse; table-layout: auto;">
             `;
@@ -979,6 +982,23 @@ HTML_TEMPLATE = """
             }
             
             return tableHTML;
+        }
+
+        function exportPageHTML() {
+            const pageHTML = document.documentElement.outerHTML;
+            const blob = new Blob([pageHTML], { type: 'text/html;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            const productName = document.getElementById('product-input').value.replace(/[^a-zA-Z0-9]/g, '_');
+            const filename = `TraceLogic_Archive_${productName}.html`;
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
         
         // Simple CSV export function
