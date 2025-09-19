@@ -343,21 +343,34 @@ HTML_TEMPLATE = """
             <div class="expander">
                 <div class="expander-header" onclick="toggleExpander('research')">Category Research 👇</div>
                 <div class="expander-content" id="research-content">
-                    <textarea id="research-prompt" rows="8">{{ research_prompt }}</textarea>
-                    
-                    <div class="llm-selection" style="margin-top: 15px;">
-                        <h4>🤖 Select LLM</h4>
-                        <div class="form-group">
-                            <select id="llm-select">
-                                <option value="claude">Claude Sonnet</option>
-                                <option value="perplexity">Perplexity</option>
-                                <option value="openai">OpenAI GPT-4</option>
-                                <option value="gemini">Google Gemini</option>
-                            </select>
-                            <div class="llm-note">
-                                Note: Research steps always use web-capable models (Perplexity/Claude) for product lookup
+                    <div class="form-group">
+                        <label>Input Method:</label>
+                        <select id="research-method-select" onchange="toggleResearchMethod()">
+                            <option value="prompt">Use Prompt</option>
+                            <option value="manual">Use Manual Text</option>
+                        </select>
+                    </div>
+
+                    <div id="research-prompt-section">
+                        <textarea id="research-prompt" rows="8">{{ research_prompt }}</textarea>
+                        <div class="llm-selection" style="margin-top: 15px;">
+                            <h4>🤖 Select LLM</h4>
+                            <div class="form-group">
+                                <select id="llm-select">
+                                    <option value="claude">Claude Sonnet</option>
+                                    <option value="perplexity">Perplexity</option>
+                                    <option value="openai">OpenAI GPT-4</option>
+                                    <option value="gemini">Google Gemini</option>
+                                </select>
+                                <div class="llm-note">
+                                    Note: Research steps always use web-capable models (Perplexity/Claude) for product lookup
+                                </div>
                             </div>
                         </div>
+                    </div>
+
+                    <div id="research-manual-section" style="display: none;">
+                        <textarea id="research-manual-text" rows="12" placeholder="Enter the complete 'General Category Research' text here. This will be used as the direct input for Step 1, skipping the API call."></textarea>
                     </div>
                 </div>
             </div>
@@ -620,6 +633,20 @@ HTML_TEMPLATE = """
                 <div><strong>Selected Images (${manualUrls.length}/3):</strong></div>
                 <div class="selected-images-grid">${gridHtml}</div>
             `;
+        }
+
+        function toggleResearchMethod() {
+            const method = document.getElementById('research-method-select').value;
+            const promptSection = document.getElementById('research-prompt-section');
+            const manualSection = document.getElementById('research-manual-section');
+            
+            if (method === 'manual') {
+                promptSection.style.display = 'none';
+                manualSection.style.display = 'block';
+            } else {
+                promptSection.style.display = 'block';
+                manualSection.style.display = 'none';
+            }
         }
         
         function previewManualImages() {
@@ -1229,13 +1256,25 @@ HTML_TEMPLATE = """
             
             try {
                 // Step 1: Category Research (formerly General Research)
-                showLoading('🔍 Step 1/6: Researching category knowledge...');
-                const researchData = await callAPI('/api/research', {
-                    product: productName,
-                    prompt: document.getElementById('research-prompt').value
-                });
-                analysisState.generalResearch = researchData.result;
-                addResult('Step 1: Category Research', analysisState.generalResearch, '🔍');
+                const researchMethod = document.getElementById('research-method-select').value;
+                
+                if (researchMethod === 'manual') {
+                    showLoading('📝 Step 1/6: Using manual category knowledge...');
+                    const manualText = document.getElementById('research-manual-text').value;
+                    if (!manualText.trim()) {
+                        throw new Error('Manual text for Category Research is empty.');
+                    }
+                    analysisState.generalResearch = manualText;
+                    addResult('Step 1: Category Research (Manual Input)', analysisState.generalResearch, '📝');
+                } else {
+                    showLoading('🔍 Step 1/6: Researching category knowledge...');
+                    const researchData = await callAPI('/api/research', {
+                        product: productName,
+                        prompt: document.getElementById('research-prompt').value
+                    });
+                    analysisState.generalResearch = researchData.result;
+                    addResult('Step 1: Category Research', analysisState.generalResearch, '🔍');
+                }
                 
                 // Step 2a: URL Retrieval 
                 showLoading('🔗 Step 2a/7: Retrieving product URLs...');
