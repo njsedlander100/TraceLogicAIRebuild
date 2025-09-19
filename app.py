@@ -323,6 +323,8 @@ HTML_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TraceLogic.AI</title>
     <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -948,7 +950,8 @@ HTML_TEMPLATE = """
                     <h4>📊 Bill of Materials</h4>
                     <div>
                         <button class="export-button" onclick="exportTableCSV('${tableId}')" style="padding: 5px 10px; cursor: pointer; margin-right: 5px;">📥 Export CSV</button>
-                        <button class="export-button" onclick="exportPageHTML()" style="padding: 5px 10px; cursor: pointer;">📄 Export HTML</button>
+                        <button class="export-button" onclick="exportPageHTML()" style="padding: 5px 10px; cursor: pointer; margin-right: 5px;">📄 Export HTML</button>
+                        <button class="export-button" onclick="exportPDF('${tableId}')" style="padding: 5px 10px; cursor: pointer;">📑 Export PDF</button>
                     </div>
                 </div>
                 <table id="${tableId}" class="data-table" style="width: 100%; border-collapse: collapse; table-layout: auto;">
@@ -1009,6 +1012,96 @@ HTML_TEMPLATE = """
             }
             
             return tableHTML;
+        }
+
+        function exportPDF(tableId) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // --- 1. GATHER DATA FROM THE PAGE ---
+            let headerText = '';
+            let footerText = '';
+            const step4Result = Array.from(document.querySelectorAll('.result h3')).find(h3 => h3.textContent.includes('Step 4: Final Product Assessment'))?.parentElement;
+
+            if (step4Result) {
+                const fullContent = step4Result.querySelector('pre').textContent;
+                const bomTitle = 'Bill of Materials (BOM) and Material/Energy Flows';
+                const systemBoundaryTitle = 'System Boundary';
+
+                const headerEndIndex = fullContent.indexOf(bomTitle) + bomTitle.length;
+                headerText = fullContent.substring(0, headerEndIndex).trim();
+                
+                const footerStartIndex = fullContent.indexOf(systemBoundaryTitle);
+                if (footerStartIndex !== -1) {
+                    footerText = fullContent.substring(footerStartIndex).trim();
+                }
+            } else {
+                alert("Could not find the final assessment text.");
+                return;
+            }
+
+            // --- 2. PROCESS TABLE DATA ---
+            const table = document.getElementById(tableId);
+            if (!table) {
+                alert("BOM table not found.");
+                return;
+            }
+            
+            const head = [];
+            const body = [];
+            const columnsToHide = [3, 4, 5, 6, 7]; // D, E, F, G, H
+
+            // Process header
+            const headerCells = table.querySelectorAll('thead th');
+            const filteredHeader = Array.from(headerCells).filter((_, index) => !columnsToHide.includes(index));
+            head.push(filteredHeader.map(th => th.textContent.trim()));
+
+            // Process body rows
+            const bodyRows = table.querySelectorAll('tbody tr');
+            bodyRows.forEach(row => {
+                // Skip the "TOTALS" row and "Air Space" row
+                const firstCellText = row.querySelector('td, th')?.textContent.trim();
+                if (firstCellText === 'TOTALS' || row.cells[1]?.textContent.trim() === 'Interior Air Space') {
+                    return;
+                }
+                const rowData = Array.from(row.querySelectorAll('td'))
+                                     .filter((_, index) => !columnsToHide.includes(index))
+                                     .map(td => td.textContent.trim());
+                body.push(rowData);
+            });
+
+            // --- 3. BUILD THE PDF ---
+            // Add Header Text
+            doc.setFontSize(10);
+            doc.text(headerText, 15, 20);
+
+            // Add BOM Table
+            const tableStartY = doc.lastAutoTable.finalY || 65; // Position after header
+            doc.autoTable({
+                head: head,
+                body: body,
+                startY: tableStartY,
+                theme: 'grid',
+                styles: {
+                    fontSize: 6,
+                    cellPadding: 1,
+                    halign: 'center'
+                },
+                headStyles: {
+                    fontStyle: 'bold',
+                    fillColor: [220, 220, 220],
+                    textColor: [0, 0, 0]
+                }
+            });
+
+            // Add Footer Text
+            const footerStartY = doc.lastAutoTable.finalY + 10;
+            doc.setFontSize(8);
+            doc.text(footerText, 15, footerStartY, { maxWidth: 180 });
+
+            // --- 4. SAVE THE PDF ---
+            const productName = document.getElementById('product-input').value.replace(/[^a-zA-Z0-9]/g, '_');
+            doc.save(`TraceLogic_Assessment_${productName}.pdf`);
         }
 
         function exportPageHTML() {
