@@ -16,6 +16,8 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
 SERPAPI_KEY = os.environ.get('SERPAPI_KEY', '')  # New: SerpAPI key
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 
+RESEARCH_TEMPLATE_DIR = 'research_templates'
+
 ####################################################################################################################################################################################
 #                DEFAULT RESEARCH PROMPT
 #####################################################################################################################################################################################
@@ -350,6 +352,13 @@ HTML_TEMPLATE = """
                         <select id="research-method-select" onchange="toggleResearchMethod()">
                             <option value="prompt">Use Prompt</option>
                             <option value="manual">Use Manual Text</option>
+                            {% if research_templates %}
+                                <optgroup label="Load from Template">
+                                    {% for template in research_templates %}
+                                        <option value="{{ template }}">{{ template }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                            {% endif %}
                         </select>
                     </div>
 
@@ -638,17 +647,20 @@ HTML_TEMPLATE = """
         }
 
         function toggleResearchMethod() {
-            const method = document.getElementById('research-method-select').value;
+            const selectedValue = document.getElementById('research-method-select').value;
             const promptSection = document.getElementById('research-prompt-section');
             const manualSection = document.getElementById('research-manual-section');
-            
-            if (method === 'manual') {
-                promptSection.style.display = 'none';
-                manualSection.style.display = 'block';
-            } else {
+
+            // Hide all sections first
+            promptSection.style.display = 'none';
+            manualSection.style.display = 'none';
+
+            if (selectedValue === 'prompt') {
                 promptSection.style.display = 'block';
-                manualSection.style.display = 'none';
+            } else if (selectedValue === 'manual') {
+                manualSection.style.display = 'block';
             }
+            // If a template file is selected, no section needs to be visible
         }
         
         function previewManualImages() {
@@ -1359,7 +1371,7 @@ HTML_TEMPLATE = """
                     }
                     analysisState.generalResearch = manualText;
                     addResult('Step 1: Category Research (Manual Input)', analysisState.generalResearch, '📝');
-                } else {
+                } else if (researchMethod === 'prompt') {
                     showLoading('🔍 Step 1/6: Researching category knowledge...');
                     const researchData = await callAPI('/api/research', {
                         product: productName,
@@ -1367,6 +1379,16 @@ HTML_TEMPLATE = """
                     });
                     analysisState.generalResearch = researchData.result;
                     addResult('Step 1: Category Research', analysisState.generalResearch, '🔍');
+                } else {
+                    // This means a template file was selected
+                    showLoading(`📄 Step 1/6: Loading research template: ${researchMethod}...`);
+                    const templateResponse = await fetch(`/api/get-research-template/${researchMethod}`);
+                    if (!templateResponse.ok) {
+                        throw new Error(`Failed to load template file: ${researchMethod}`);
+                    }
+                    const templateData = await templateResponse.json();
+                    analysisState.generalResearch = templateData.content;
+                    addResult(`Step 1: Category Research (from ${researchMethod})`, analysisState.generalResearch, '📄');
                 }
                 
                 // Step 2a: URL Retrieval 
@@ -1988,14 +2010,37 @@ Please verify these are correct product pages and extract specifications."""
 
 @app.route('/')
 def index():
+    # Scan the directory for template files
+    template_files = []
+    if os.path.exists(RESEARCH_TEMPLATE_DIR):
+        template_files = [f for f in os.listdir(RESEARCH_TEMPLATE_DIR) if f.endswith('.txt')]
+
     return render_template_string(HTML_TEMPLATE, 
                                 research_prompt=DEFAULT_RESEARCH_PROMPT,
                                 product_prompt=DEFAULT_PRODUCT_PROMPT.format(url_prompt=DEFAULT_URL_PROMPT),
                                 image_prompt=DEFAULT_IMAGE_PROMPT,
                                 reconciliation_prompt=DEFAULT_RECONCILIATION_PROMPT,
-                                url_prompt=DEFAULT_URL_PROMPT)  # ✅ This is already there!
+                                url_prompt=DEFAULT_URL_PROMPT,
+                                research_templates=template_files) # Pass the list to the template
 
-# Search for product images using SerpAPI
+# New API endpoint to fetch a template's content
+@app.route('/api/get-research-template/<filename>')
+def get_research_template(filename):
+    try:
+        # Security: ensure filename is safe
+        if '..' in filename or filename.startswith('/'):
+            return jsonify({'error': 'Invalid filename'}), 400
+
+        filepath = os.path.join(RESEARCH_TEMPLATE_DIR, filename)
+        if os.path.exists(filepath):
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
+            return jsonify({'content': content})
+        else:
+            return jsonify({'error': 'Template not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/search-images', methods=['POST'])
 def search_images_api():
     data = request.json
