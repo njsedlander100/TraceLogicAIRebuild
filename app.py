@@ -31,7 +31,7 @@ Research the typical materials, components, and construction details for this ge
 1) Common materials used in manufacturing (metals, fabrics, plastics, etc.)
 2) Standard components that are always present but might not be explicitly mentioned (handles, coatings, fasteners, etc.)
 3) Typical total product weight ranges for products in this category
-4) Typical parts and percentages by volume in this category (must be volume and not weight)
+4) Typical parts and percentages by volume in this category (must be volume and not weight); when estimating material volume, consider only parts and materials, not space or air.
 5) Common manufacturing countries and material source countries
 6) Standard construction methods and material densities
 7) Any specialized components or materials specific to this product type
@@ -253,13 +253,13 @@ Create a comprehensive professional assessment following this EXACT format and s
 - Country of Origin: [Manufacturing country from research]
 
 **Bill of Materials (BOM) and Material/Energy Flows**
-Create a table using the CALCULATED MATHEMATICAL DATA provided. Use these EXACT columns (use | delimiters):
+Create a table using the CALCULATED MATHEMATICAL DATA provided. Only include parts and materials, not space or air. Use these EXACT columns (use | delimiters):
 
-Part | Material | Material Source Country | Volume Percentage (%) | Published Material Density (lb/ft^3) | Material Volume Density | Volume Density Percentage (%) | Product Weight (lbs) | Material Part Weight (Lbs) | Material Part Weight (Kg) | Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight) | Sourcing and Processing Carbon Footprint Reference | Material Part Sourcing and Processing Carbon Footprint (Kg CO2e) | Material Mfg Process | Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight) | Mfg Process Carbon Footprint Reference | Material Part Mfg Process Carbon Footprint (Kg CO2e) | Material Journey Method | Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA) | Transport. Published Carbon Footprint (Kg CO2e/Kg-Km) | Transport. Carbon Footprint Reference | Material Part Journey Carbon Footprint (Kg CO2e) | Material End of Life | Published End of Life Carbon Footprint (Kg CO2e/Kg weight) | End of Life Carbon Footprint Reference | Material End of LIfe Carbon Footprint (Kg CO2e)
+Part | Material | Material Source Country | Volume Percentage (%) | Published Material Density (lb/ft^3) | Material Volume Density | Volume Density Percentage (%) | Product Weight (lbs) | Material Part Weight (Lbs) | Material Part Weight (Kg) | Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight) | Sourcing and Processing Carbon Footprint Reference | Material Part Sourcing and Processing Carbon Footprint (Kg CO2e) | Material Mfg Process | Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight) | Mfg Process Carbon Footprint Reference | Material Part Mfg Process Carbon Footprint (Kg CO2e) | Material Journey Method | Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA) | Transport Published Carbon Footprint (Kg CO2e/Kg-Km) | Transport. Carbon Footprint Reference | Material Part Journey Carbon Footprint (Kg CO2e) | Material End of Life | Published End of Life Carbon Footprint (Kg CO2e/Kg weight) | End of Life Carbon Footprint Reference | Material End of LIfe Carbon Footprint (Kg CO2e)
 
 **CRITICAL TABLE REQUIREMENTS:**
 - Use the pre-calculated mathematical data from the calculation step
-- Include ALL materials from calculated analysis
+- Include ALL materials from calculated analysis; make sure that the materials column shows ONLY the physical material, e.g. stainless steel, Polyurethane foam
 - All weights, densities, and CO2 values are already computed - use them directly
 - Include numbered references [1], [2], [3], etc. for all footprint values
 - DO NOT recalculate - use the provided calculated values
