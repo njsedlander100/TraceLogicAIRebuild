@@ -1075,12 +1075,12 @@ HTML_TEMPLATE = """
 
             const headerMap = {
                 "Part": "Part", "Material": "Material", "Material Source Country": "Source",
-                "Material Part Weight (Kg)": "Mat Wt (Kg)", "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Src Rate",
+                "Material Part Weight (Kg)": "Weight (Kg)", "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Src CO2 Rate",
                 "Sourcing and Processing Carbon Footprint Reference": "Src Ref", "Material Part Sourcing and Processing Carbon Footprint (Kg CO2e)": "Src CO2",
-                "Material Mfg Process": "Mfg Process", "Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight)": "Mfg Rate",
+                "Material Mfg Process": "Mfg Process", "Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight)": "Mfg CO2 Rate",
                 "Mfg Process Carbon Footprint Reference": "Mfg Ref", "Material Part Mfg Process Carbon Footprint (Kg CO2e)": "Mfg CO2",
                 "Material Journey Method": "Transport", "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Dist (Km)",
-                "Transport. Published Carbon Footprint (Kg CO2e/Kg-Km)": "Trsp Rate", "Transport. Carbon Footprint Reference": "Trsp Ref",
+                "Transport. Published Carbon Footprint (Kg CO2e/Kg-Km)": "Trsp CO2 Rate", "Transport. Carbon Footprint Reference": "Trsp Ref",
                 "Material Part Journey Carbon Footprint (Kg CO2e)": "Trsp CO2", "Material End of Life": "EoL",
                 "Published End of Life Carbon Footprint (Kg CO2e/Kg weight)": "EoL Rate", "End of Life Carbon Footprint Reference": "EoL Ref",
                 "Material End of LIfe Carbon Footprint (Kg CO2e)": "EoL CO2"
