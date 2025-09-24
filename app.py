@@ -1032,6 +1032,7 @@ HTML_TEMPLATE = """
 
         function exportPDF(tableId) {
             const { jsPDF } = window.jspdf;
+            // Use jsPDF in landscape mode to give more room for the table
             const doc = new jsPDF({ orientation: 'landscape' });
 
             // --- 1. GATHER DATA FROM THE PAGE ---
@@ -1040,18 +1041,20 @@ HTML_TEMPLATE = """
             const step4Result = Array.from(document.querySelectorAll('.result h3')).find(h3 => h3.textContent.includes('Step 4: Final Product Assessment'))?.parentElement;
 
             if (step4Result) {
+                // This now correctly finds the hidden div created by addResult
                 const rawContentDiv = step4Result.querySelector('.raw-step4-content');
                 if (!rawContentDiv) {
                     alert("Could not find the raw assessment text. The page structure might have changed.");
                     return;
                 }
-                const fullContent = rawContentDiv.textContent;
+                const fullContent = rawContentDiv.textContent; 
+                
                 const bomTitle = 'Bill of Materials (BOM) and Material/Energy Flows';
                 const systemBoundaryTitle = 'System Boundary';
 
                 const headerEndIndex = fullContent.indexOf(bomTitle) + bomTitle.length;
                 headerText = fullContent.substring(0, headerEndIndex).trim();
-
+                
                 const footerStartIndex = fullContent.indexOf(systemBoundaryTitle);
                 if (footerStartIndex !== -1) {
                     footerText = fullContent.substring(footerStartIndex).trim();
@@ -1061,16 +1064,15 @@ HTML_TEMPLATE = """
                 return;
             }
 
-            // --- 2. PROCESS TABLE DATA ---
+            // --- 2. PROCESS TABLE DATA (This part remains the same) ---
             const table = document.getElementById(tableId);
             if (!table) { alert("BOM table not found."); return; }
-
+            
             const head = [];
             const body = [];
             const foot = [];
             const columnsToHide = [3, 4, 5, 6, 7]; // Columns D-H
 
-            // **NEW**: Updated header map based on your CSV file
             const headerMap = {
                 "Part": "Part",
                 "Material": "Material",
@@ -1118,26 +1120,30 @@ HTML_TEMPLATE = """
             doc.setFontSize(9);
             doc.text(headerText, 15, 20);
 
+            const tableStartY = 65;
             doc.autoTable({
-                head: head, body: body, foot: foot, startY: 65, theme: 'grid',
+                head: head, body: body, foot: foot, startY: tableStartY, theme: 'grid',
                 styles: { fontSize: 5, cellPadding: 1, halign: 'center' },
                 headStyles: { fontStyle: 'bold', fillColor: [220, 220, 220], textColor: [0, 0, 0] },
                 footStyles: { fontStyle: 'bold', fillColor: [240, 240, 240], textColor: [0, 0, 0] }
             });
-            
+
+            // **NEW LOGIC**: Handle multi-page text for the footer
             let finalY = doc.lastAutoTable.finalY + 10;
             doc.setFontSize(8);
             const pageHeight = doc.internal.pageSize.height;
             const margin = 15;
+            // Split the long text block into lines that fit the page width
             const textLines = doc.splitTextToSize(footerText, doc.internal.pageSize.width - (margin * 2));
-
+            
             textLines.forEach(line => {
+                // If the next line will go off the page, add a new page
                 if (finalY > pageHeight - margin) {
                     doc.addPage();
-                    finalY = margin;
+                    finalY = margin; // Reset Y position to the top margin
                 }
                 doc.text(line, margin, finalY);
-                finalY += 4;
+                finalY += 4; // Move Y down for the next line
             });
 
             // --- 4. SAVE THE PDF ---
