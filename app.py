@@ -1032,7 +1032,6 @@ HTML_TEMPLATE = """
 
         function exportPDF(tableId) {
             const { jsPDF } = window.jspdf;
-            // Use jsPDF in landscape mode to give more room for the table
             const doc = new jsPDF({ orientation: 'landscape' });
 
             // --- 1. GATHER DATA FROM THE PAGE ---
@@ -1041,20 +1040,18 @@ HTML_TEMPLATE = """
             const step4Result = Array.from(document.querySelectorAll('.result h3')).find(h3 => h3.textContent.includes('Step 4: Final Product Assessment'))?.parentElement;
 
             if (step4Result) {
-                // This now correctly finds the hidden div created by addResult
                 const rawContentDiv = step4Result.querySelector('.raw-step4-content');
                 if (!rawContentDiv) {
                     alert("Could not find the raw assessment text. The page structure might have changed.");
                     return;
                 }
-                const fullContent = rawContentDiv.textContent; 
-                
+                const fullContent = rawContentDiv.textContent;
                 const bomTitle = 'Bill of Materials (BOM) and Material/Energy Flows';
                 const systemBoundaryTitle = 'System Boundary';
 
                 const headerEndIndex = fullContent.indexOf(bomTitle) + bomTitle.length;
                 headerText = fullContent.substring(0, headerEndIndex).trim();
-                
+
                 const footerStartIndex = fullContent.indexOf(systemBoundaryTitle);
                 if (footerStartIndex !== -1) {
                     footerText = fullContent.substring(footerStartIndex).trim();
@@ -1064,26 +1061,37 @@ HTML_TEMPLATE = """
                 return;
             }
 
-            // --- 2. PROCESS TABLE DATA (This part remains the same) ---
+            // --- 2. PROCESS TABLE DATA ---
             const table = document.getElementById(tableId);
             if (!table) { alert("BOM table not found."); return; }
-            
+
             const head = [];
             const body = [];
             const foot = [];
             const columnsToHide = [3, 4, 5, 6, 7]; // Columns D-H
 
+            // **NEW**: Updated header map based on your CSV file
             const headerMap = {
-                "Part": "Part", "Material": "Material", "Material Source Country": "Source",
-                "Material Part Weight (Kg)": "Weight (Kg)", "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Src CO2 Rate",
-                "Sourcing and Processing Carbon Footprint Reference": "Src Ref", "Material Part Sourcing and Processing Carbon Footprint (Kg CO2e)": "Src CO2",
-                "Material Mfg Process": "Mfg Process", "Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight)": "Mfg CO2 Rate",
-                "Mfg Process Carbon Footprint Reference": "Mfg Ref", "Material Part Mfg Process Carbon Footprint (Kg CO2e)": "Mfg CO2",
-                "Material Journey Method": "Transport", "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Dist (Km)",
-                "Transport. Published Carbon Footprint (Kg CO2e/Kg-Km)": "Trsp CO2 Rate", "Transport. Carbon Footprint Reference": "Trsp Ref",
-                "Material Part Journey Carbon Footprint (Kg CO2e)": "Trsp CO2", "Material End of Life": "EoL",
-                "Published End of Life Carbon Footprint (Kg CO2e/Kg weight)": "EoL Rate", "End of Life Carbon Footprint Reference": "EoL Ref",
-                "Material End of LIfe Carbon Footprint (Kg CO2e)": "EoL CO2"
+                "Part": "Part",
+                "Material": "Material",
+                "Material Source Country": "Sourcing\nProcessing",
+                "Material Part Weight (Kg)": "Weight (kg)",
+                "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Sourcing\nEF(CO2e/Kg)",
+                "Sourcing and Processing Carbon Footprint Reference": "Sourcing\nEF Ref",
+                "Material Part Sourcing and Processing Carbon Footprint (Kg CO2e)": "Sourcing\n(Kg CO2e)",
+                "Material Mfg Process": "MFG Process",
+                "Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight)": "MFG Process\nEF (Kg CO2e/Kg)",
+                "Mfg Process Carbon Footprint Reference": "MGF Process\nEF Ref",
+                "Material Part Mfg Process Carbon Footprint (Kg CO2e)": "MFG (Kg CO2e)",
+                "Material Journey Method": "Journey\nMethod",
+                "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Journey\nDistance (Km)",
+                "Transport. Published Carbon Footprint (Kg CO2e/Kg-Km)": "Journey\nEF (Kg CO2e/Kg-Km)",
+                "Transport. Carbon Footprint Reference": "Journey\nMethod EF Ref",
+                "Material Part Journey Carbon Footprint (Kg CO2e)": "Journey\n(Kg CO2e)",
+                "Material End of Life": "End of Life",
+                "Published End of Life Carbon Footprint (Kg CO2e/Kg weight)": "End of Life\nEF (Kg CO2e/Kg)",
+                "End of Life Carbon Footprint Reference": "End of Life\nEF Ref",
+                "Material End of LIfe Carbon Footprint (Kg CO2e)": "End of Life\n(Kg CO2e)"
             };
 
             const headerCells = table.querySelectorAll('thead th');
@@ -1110,30 +1118,26 @@ HTML_TEMPLATE = """
             doc.setFontSize(9);
             doc.text(headerText, 15, 20);
 
-            const tableStartY = 65;
             doc.autoTable({
-                head: head, body: body, foot: foot, startY: tableStartY, theme: 'grid',
+                head: head, body: body, foot: foot, startY: 65, theme: 'grid',
                 styles: { fontSize: 5, cellPadding: 1, halign: 'center' },
                 headStyles: { fontStyle: 'bold', fillColor: [220, 220, 220], textColor: [0, 0, 0] },
                 footStyles: { fontStyle: 'bold', fillColor: [240, 240, 240], textColor: [0, 0, 0] }
             });
-
-            // **NEW LOGIC**: Handle multi-page text for the footer
+            
             let finalY = doc.lastAutoTable.finalY + 10;
             doc.setFontSize(8);
             const pageHeight = doc.internal.pageSize.height;
             const margin = 15;
-            // Split the long text block into lines that fit the page width
             const textLines = doc.splitTextToSize(footerText, doc.internal.pageSize.width - (margin * 2));
-            
+
             textLines.forEach(line => {
-                // If the next line will go off the page, add a new page
                 if (finalY > pageHeight - margin) {
                     doc.addPage();
-                    finalY = margin; // Reset Y position to the top margin
+                    finalY = margin;
                 }
                 doc.text(line, margin, finalY);
-                finalY += 4; // Move Y down for the next line
+                finalY += 4;
             });
 
             // --- 4. SAVE THE PDF ---
