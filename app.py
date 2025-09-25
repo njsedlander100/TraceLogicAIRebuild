@@ -325,8 +325,8 @@ HTML_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TraceLogic.AI</title>
     <link rel="stylesheet" href="/static/style.css">
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js](https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js)"></script>
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js](https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js)"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -343,10 +343,6 @@ HTML_TEMPLATE = """
             <div class="form-group">
                 <label for="country-of-origin-input">Country of Origin (Optional) 👇</label>
                 <input type="text" id="country-of-origin-input" placeholder="e.g., China, USA (Overrides research if filled)">
-            </div>
-            <div class="form-group">
-                <label for="upc-input">UPC (Optional) 👇</label>
-                <input type="text" id="upc-input" placeholder="Enter UPC to override research">
             </div>
             <div class="expander">
                 <div class="expander-header" onclick="toggleExpander('research')">Category Research 👇</div>
@@ -401,6 +397,7 @@ HTML_TEMPLATE = """
                         </select>
                     </div>
             
+                    <!-- API Search Section -->
                     <div id="api-search-section" style="display: none;">
                         <div class="form-group">
                             <label>Search Model:</label>
@@ -420,19 +417,20 @@ HTML_TEMPLATE = """
                         </div>
                     </div>
             
+                    <!-- Manual URL Input Section -->
                     <div id="manual-url-section" style="display: block;">
                         <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
                             <div>
                                 <label style="font-size: 14px; font-weight: bold; color: #666;">Product URL 1 (Amazon/Primary Retailer):</label>
-                                <input type="text" id="manual-url-1" class="url-input" placeholder="[https://amazon.com/product-link](https://amazon.com/product-link)..." style="width: 100%; padding: 8px; margin-top: 5px;">
+                                <input type="text" id="manual-url-1" class="url-input" placeholder="https://amazon.com/product-link..." style="width: 100%; padding: 8px; margin-top: 5px;">
                             </div>
                             <div>
                                 <label style="font-size: 14px; font-weight: bold; color: #666;">Product URL 2 (Manufacturer/Brand Site):</label>
-                                <input type="text" id="manual-url-2" class="url-input" placeholder="[https://brandname.com/product-page](https://brandname.com/product-page)..." style="width: 100%; padding: 8px; margin-top: 5px;">
+                                <input type="text" id="manual-url-2" class="url-input" placeholder="https://brandname.com/product-page..." style="width: 100%; padding: 8px; margin-top: 5px;">
                             </div>
                             <div>
                                 <label style="font-size: 14px; font-weight: bold; color: #666;">Product URL 3 (Other Retailer):</label>
-                                <input type="text" id="manual-url-3" class="url-input" placeholder="[https://retailer.com/product-link](https://retailer.com/product-link)..." style="width: 100%; padding: 8px; margin-top: 5px;">
+                                <input type="text" id="manual-url-3" class="url-input" placeholder="https://retailer.com/product-link..." style="width: 100%; padding: 8px; margin-top: 5px;">
                             </div>
                         </div>
                         <button class="btn" onclick="testManualURLs()" style="margin-top: 15px;">🔗 Test Manual URLs</button>
@@ -445,6 +443,7 @@ HTML_TEMPLATE = """
                 </div>
             </div>
             
+            <!-- Product Listing Analysis (formerly Product & BOM) -->
             <div class="expander">
                 <div class="expander-header" onclick="toggleExpander('product')">Product Listing Analysis 👇</div>
                 <div class="expander-content" id="product-content">
@@ -520,6 +519,7 @@ HTML_TEMPLATE = """
                 </div>
             </div>
             
+            <!-- Final Product Assessment (formerly Final BOM Table) -->
             <div class="expander">
                 <div class="expander-header" onclick="toggleExpander('reconciliation')">Final Product Assessment 👇</div>
                 <div class="expander-content" id="reconciliation-content">
@@ -561,16 +561,16 @@ HTML_TEMPLATE = """
         document.addEventListener('DOMContentLoaded', function() {
             // Set default image URLs
             const defaultImageUrls = [
-                '[https://dks.scene7.com/is/image/GolfGalaxy/20COLU120QTHRDCLRREC_Twilight?qlt=70&wid=1100&fmt=pjpeg&op_sharpen=1](https://dks.scene7.com/is/image/GolfGalaxy/20COLU120QTHRDCLRREC_Twilight?qlt=70&wid=1100&fmt=pjpeg&op_sharpen=1)',
-                '[https://photos-us.bazaarvoice.com/photo/2/cGhvdG86Y29sZW1hbi11cw/fc44c487-975f-519a-ae67-4ee7deb71ba1](https://photos-us.bazaarvoice.com/photo/2/cGhvdG86Y29sZW1hbi11cw/fc44c487-975f-519a-ae67-4ee7deb71ba1)',
-                '[https://photos-us.bazaarvoice.com/photo/2/cGhvdG86Y29sZW1hbi11cw/6b110e50-d137-5833-9fe5-6bce6ca14890](https://photos-us.bazaarvoice.com/photo/2/cGhvdG86Y29sZW1hbi11cw/6b110e50-d137-5833-9fe5-6bce6ca14890)'
+                'https://dks.scene7.com/is/image/GolfGalaxy/20COLU120QTHRDCLRREC_Twilight?qlt=70&wid=1100&fmt=pjpeg&op_sharpen=1',
+                'https://photos-us.bazaarvoice.com/photo/2/cGhvdG86Y29sZW1hbi11cw/fc44c487-975f-519a-ae67-4ee7deb71ba1',
+                'https://photos-us.bazaarvoice.com/photo/2/cGhvdG86Y29sZW1hbi11cw/6b110e50-d137-5833-9fe5-6bce6ca14890'
             ];
 
             // ADD THESE LINES FOR DEFAULT MANUAL URLS:
             const defaultManualUrls = [
-                '[https://www.coleman.com/coolers-drinkware/coolers/hard-coolers/classic-120-quart-hard-cooler/SP_271358.html](https://www.coleman.com/coolers-drinkware/coolers/hard-coolers/classic-120-quart-hard-cooler/SP_271358.html)',
-                '[https://www.dickssportinggoods.com/p/coleman-120-quart-hard-ice-chest-cooler-20colu120qthrdclrrec/20colu120qthrdclrrec?recid=oosproduct_PageElement_oosproduct_rr_2_42843_&rrec=true](https://www.dickssportinggoods.com/p/coleman-120-quart-hard-ice-chest-cooler-20colu120qthrdclrrec/20colu120qthrdclrrec?recid=oosproduct_PageElement_oosproduct_rr_2_42843_&rrec=true)',
-                '[https://www.amazon.com/dp/B0BDGF2RHF?ref_=cm_sw_r_cp_ud_dp_3F1Q63Q8G9FEQ6J74XEG](https://www.amazon.com/dp/B0BDGF2RHF?ref_=cm_sw_r_cp_ud_dp_3F1Q63Q8G9FEQ6J74XEG)'
+                'https://www.coleman.com/coolers-drinkware/coolers/hard-coolers/classic-120-quart-hard-cooler/SP_271358.html',
+                'https://www.dickssportinggoods.com/p/coleman-120-quart-hard-ice-chest-cooler-20colu120qthrdclrrec/20colu120qthrdclrrec?recid=oosproduct_PageElement_oosproduct_rr_2_42843_&rrec=true',
+                'https://www.amazon.com/dp/B0BDGF2RHF?ref_=cm_sw_r_cp_ud_dp_3F1Q63Q8G9FEQ6J74XEG'
             ];
             
             document.getElementById('manual-url-1').value = defaultManualUrls[0];
@@ -1074,12 +1074,12 @@ HTML_TEMPLATE = """
             const columnsToHide = [3, 4, 5, 6, 7]; // Columns D-H
 
             const headerMap = {
-                "Part": "Part", "Material": "Material", "Material Source Country": "Sourcing Processing",
+                "Part": "Part", "Material": "Material", "Material Source Country": "Sourcing/Processing",
                 "Material Part Weight (Kg)": "Weight (Kg)", "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Sourcing Processing EF(CO2e/Kg)",
                 "Sourcing and Processing Carbon Footprint Reference": "Sourcing Processing EF Ref", "Material Part Sourcing and Processing Carbon Footprint (Kg CO2e)": "Sourcing Processing (Kg CO2e)",
                 "Material Mfg Process": "Mfg Process", "Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight)": "Mfg Process EF (Kg CO2e/Kg)",
                 "Mfg Process Carbon Footprint Reference": "Mfg Process EF Ref", "Material Part Mfg Process Carbon Footprint (Kg CO2e)": "Mfg (Kg CO2e)",
-                "Material Journey Method": "Journey Method", "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Journey Distance (km)",
+                "Material Journey Method": "Journey Method (km)", "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Journey Distance",
                 "Transport. Published Carbon Footprint (Kg CO2e/Kg-Km)": "Journey EF (Kg CO2e/Kg-Km)", "Transport. Carbon Footprint Reference": "Journey Method EF Ref",
                 "Material Part Journey Carbon Footprint (Kg CO2e)": "Journey (Kg CO2e)", "Material End of Life": "End of Life",
                 "Published End of Life Carbon Footprint (Kg CO2e/Kg weight)": "End of Life EF (Kg CO2e/Kg weight)", "End of Life Carbon Footprint Reference": "End of Life EF Ref",
@@ -1549,16 +1549,14 @@ HTML_TEMPLATE = """
                 // Step 4: Final Product Assessment (formerly Final BOM Table)
                 showLoading('📊 Step 4/7: Creating final product assessment...');
                 const countryOfOrigin = document.getElementById('country-of-origin-input').value.trim();
-                const upc = document.getElementById('upc-input').value.trim();
-
+                
                 const reconciliationData = await callAPI('/api/reconciliation', {
                     researchBOM: analysisState.productBOM,
                     imageAnalysis: analysisState.imageAnalysis,
                     calculatedBOM: analysisState.calculatedBOM ? JSON.stringify(analysisState.calculatedBOM) : null,
                     generalResearch: analysisState.generalResearch,
                     prompt: document.getElementById('reconciliation-prompt').value,
-                    countryOfOrigin: countryOfOrigin, // NEW: Pass the value to the backend
-                    upc: upc
+                    countryOfOrigin: countryOfOrigin // NEW: Pass the value to the backend
                 });
                 analysisState.finalBOM = reconciliationData.result;
                 addResult('Step 4: Final Product Assessment', analysisState.finalBOM, '📊');
@@ -1762,7 +1760,7 @@ def call_perplexity_api(prompt):
     if not PPLX_API_KEY:
         raise Exception("Perplexity API key not configured")
     
-    url = "[https://api.perplexity.ai/chat/completions](https://api.perplexity.ai/chat/completions)"
+    url = "https://api.perplexity.ai/chat/completions"
     headers = {
         "accept": "application/json",
         "content-type": "application/json",
@@ -1788,7 +1786,7 @@ def call_claude_api(prompt):
     if not ANTHROPIC_API_KEY:
         raise Exception("Claude API key not configured")
     
-    url = "[https://api.anthropic.com/v1/messages](https://api.anthropic.com/v1/messages)"
+    url = "https://api.anthropic.com/v1/messages"
     headers = {
         "content-type": "application/json",
         "x-api-key": ANTHROPIC_API_KEY,
@@ -1814,7 +1812,7 @@ def call_openai_api(prompt):
     if not OPENAI_API_KEY:
         raise Exception("OpenAI API key not configured")
     
-    url = "[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)"
+    url = "https://api.openai.com/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {OPENAI_API_KEY}"
@@ -1839,7 +1837,7 @@ def call_gemini_api(prompt):
     if not GEMINI_API_KEY:
         raise Exception("Gemini API key not configured")
     
-    url = f"[https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=](https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=){GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}"
     headers = {"Content-Type": "application/json"}
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
@@ -1858,7 +1856,7 @@ def call_openai_vision_api(prompt, image_url):
     if not OPENAI_API_KEY:
         raise Exception("OpenAI API key not configured")
     
-    url = "[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)"
+    url = "https://api.openai.com/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {OPENAI_API_KEY}"
@@ -1913,7 +1911,7 @@ def call_claude_vision_api(prompt, image_url):
     except Exception as e:
         raise Exception(f"Error processing image: {str(e)}")
     
-    url = "[https://api.anthropic.com/v1/messages](https://api.anthropic.com/v1/messages)"
+    url = "https://api.anthropic.com/v1/messages"
     headers = {
         "content-type": "application/json",
         "x-api-key": ANTHROPIC_API_KEY,
@@ -2001,7 +1999,7 @@ def call_serpapi_search(prompt):
     
     print(f"SerpAPI extracted search query: {search_query}")
     
-    url = "[https://serpapi.com/search.json](https://serpapi.com/search.json)"
+    url = "https://serpapi.com/search.json"
     params = {
         "engine": "google",
         "q": search_query,
@@ -2078,7 +2076,7 @@ def search_images_api():
     
     try:
         # Search for product images using SerpAPI
-        url = "[https://serpapi.com/search.json](https://serpapi.com/search.json)"
+        url = "https://serpapi.com/search.json"
         params = {
             "engine": "google_images",
             "q": f'"{product}" product -pinterest -ebay -amazon -etsy',
@@ -2206,14 +2204,9 @@ def reconciliation_api():
     prompt = data.get('prompt')
     llm_choice = data.get('llm', 'perplexity')
     country_of_origin = data.get('countryOfOrigin', '')
-    upc = data.get('upc', '')
 
     current_date = datetime.now().strftime('%B %d, %Y')
     prompt_with_date = prompt.replace('[Current date]', current_date)
-
-    # Handle UPC override
-    if upc:
-        prompt_with_date = prompt_with_date.replace('[Extract from product research or estimate based on product type]', upc)
 
     # This logic remains to ensure the user-specified country is used in the report text
     override_instruction = ""
