@@ -1384,10 +1384,9 @@ HTML_TEMPLATE = """
             }
         }
         
-        async function runCompleteAnalysis() {
+async function runCompleteAnalysis() {
             clearResults();
             const productName = document.getElementById('product-input').value;
-            const upc = document.getElementById('upc-input').value.trim();
             
             try {
                 // Step 1: Category Research (formerly General Research)
@@ -1513,8 +1512,7 @@ HTML_TEMPLATE = """
                         productBOM: analysisState.productBOM,
                         prompt: document.getElementById('image-prompt').value,
                         visionLLM: visionLLM,
-                        countryOfOrigin: countryOfOrigin,
-                        upc: upc
+                        countryOfOrigin: countryOfOrigin
                     });
                     analysisState.imageAnalysis = imageData.result;
                     addResult('Step 3: Multi-Image Product Analysis', analysisState.imageAnalysis, '📷');
@@ -1555,14 +1553,16 @@ HTML_TEMPLATE = """
                 // Step 4: Final Product Assessment (formerly Final BOM Table)
                 showLoading('📊 Step 4/7: Creating final product assessment...');
                 const countryOfOrigin = document.getElementById('country-of-origin-input').value.trim();
-                
+                const upc = document.getElementById('upc-input').value.trim();
+
                 const reconciliationData = await callAPI('/api/reconciliation', {
                     researchBOM: analysisState.productBOM,
                     imageAnalysis: analysisState.imageAnalysis,
                     calculatedBOM: analysisState.calculatedBOM ? JSON.stringify(analysisState.calculatedBOM) : null,
                     generalResearch: analysisState.generalResearch,
                     prompt: document.getElementById('reconciliation-prompt').value,
-                    countryOfOrigin: countryOfOrigin // NEW: Pass the value to the backend
+                    countryOfOrigin: countryOfOrigin,
+                    upc: upc
                 });
                 analysisState.finalBOM = reconciliationData.result;
                 addResult('Step 4: Final Product Assessment', analysisState.finalBOM, '📊');
@@ -1589,7 +1589,6 @@ HTML_TEMPLATE = """
                 setComplete();
             }
         }
-
 
     </script>
 </body>
