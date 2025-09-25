@@ -1074,8 +1074,8 @@ HTML_TEMPLATE = """
             const columnsToHide = [3, 4, 5, 6, 7]; // Columns D-H
 
             const headerMap = {
-                "Part": "Part", "Material": "Material", "Material Source Country": "Source",
-                "Material Part Weight (Kg)": "Weight (Kg)", "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Src CO2 Rate",
+                "Part": "Part", "Material": "Material", "Material Source Country": "Sourcing/Processing",
+                "Material Part Weight (Kg)": "Weight (Kg)", "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Sourcing Processing EF(CO2e/Kg)",
                 "Sourcing and Processing Carbon Footprint Reference": "Src Ref", "Material Part Sourcing and Processing Carbon Footprint (Kg CO2e)": "Src CO2",
                 "Material Mfg Process": "Mfg Process", "Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight)": "Mfg CO2 Rate",
                 "Mfg Process Carbon Footprint Reference": "Mfg Ref", "Material Part Mfg Process Carbon Footprint (Kg CO2e)": "Mfg CO2",
