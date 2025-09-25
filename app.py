@@ -37,7 +37,7 @@ Research the typical materials, components, and construction details for this ge
 7) Any specialized components or materials specific to this product type
 Provide this as comprehensive baseline knowledge that can be used to enhance analysis of specific products in this category.
 
-DO NOT CREATE ANY TABLES. ONLY PROVIDE TEXT ANALYSIS.
+DO NOT CREATE ANY TABLES. ONLY PROVIDE TEXT ANALYSIS..
 
 
 
