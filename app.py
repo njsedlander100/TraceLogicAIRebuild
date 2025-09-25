@@ -344,6 +344,10 @@ HTML_TEMPLATE = """
                 <label for="country-of-origin-input">Country of Origin (Optional) 👇</label>
                 <input type="text" id="country-of-origin-input" placeholder="e.g., China, USA (Overrides research if filled)">
             </div>
+            <div class="form-group">
+                <label for="upc-input">UPC (Optional) 👇</label>
+                <input type="text" id="upc-input" placeholder="Enter UPC to override research">
+            </div>
             <div class="expander">
                 <div class="expander-header" onclick="toggleExpander('research')">Category Research 👇</div>
                 <div class="expander-content" id="research-content">
