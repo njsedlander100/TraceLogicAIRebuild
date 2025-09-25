@@ -25,7 +25,6 @@ RESEARCH_TEMPLATE_DIR = 'research_templates'
 DEFAULT_RESEARCH_PROMPT = """
 
 
-
 Follow the below steps:
 Research the typical materials, components, and construction details for this general product category. Include:
 1) Common materials used in manufacturing (metals, fabrics, plastics, etc.)
