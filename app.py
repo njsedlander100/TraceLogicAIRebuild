@@ -1079,7 +1079,7 @@ HTML_TEMPLATE = """
                 "Sourcing and Processing Carbon Footprint Reference": "Sourcing Processing EF Ref", "Material Part Sourcing and Processing Carbon Footprint (Kg CO2e)": "Sourcing Processing (Kg CO2e)",
                 "Material Mfg Process": "Mfg Process", "Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight)": "Mfg Process EF (Kg CO2e/Kg)",
                 "Mfg Process Carbon Footprint Reference": "Mfg Process EF Ref", "Material Part Mfg Process Carbon Footprint (Kg CO2e)": "Mfg (Kg CO2e)",
-                "Material Journey Method": "Journey Method", "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Journey Distance",
+                "Material Journey Method": "Journey Method (km)", "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Journey Distance",
                 "Transport. Published Carbon Footprint (Kg CO2e/Kg-Km)": "Journey EF (Kg CO2e/Kg-Km)", "Transport. Carbon Footprint Reference": "Journey Method EF Ref",
                 "Material Part Journey Carbon Footprint (Kg CO2e)": "Journey (Kg CO2e)", "Material End of Life": "End of Life",
                 "Published End of Life Carbon Footprint (Kg CO2e/Kg weight)": "End of Life EF (Kg CO2e/Kg weight)", "End of Life Carbon Footprint Reference": "End of Life EF Ref",
