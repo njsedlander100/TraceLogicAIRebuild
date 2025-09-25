@@ -1076,14 +1076,14 @@ HTML_TEMPLATE = """
             const headerMap = {
                 "Part": "Part", "Material": "Material", "Material Source Country": "Sourcing/Processing",
                 "Material Part Weight (Kg)": "Weight (Kg)", "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Sourcing Processing EF(CO2e/Kg)",
-                "Sourcing and Processing Carbon Footprint Reference": "Src Ref", "Material Part Sourcing and Processing Carbon Footprint (Kg CO2e)": "Src CO2",
-                "Material Mfg Process": "Mfg Process", "Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight)": "Mfg CO2 Rate",
-                "Mfg Process Carbon Footprint Reference": "Mfg Ref", "Material Part Mfg Process Carbon Footprint (Kg CO2e)": "Mfg CO2",
-                "Material Journey Method": "Transport", "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Dist (Km)",
-                "Transport. Published Carbon Footprint (Kg CO2e/Kg-Km)": "Trsp CO2 Rate", "Transport. Carbon Footprint Reference": "Trsp Ref",
-                "Material Part Journey Carbon Footprint (Kg CO2e)": "Trsp CO2", "Material End of Life": "EoL",
-                "Published End of Life Carbon Footprint (Kg CO2e/Kg weight)": "EoL Rate", "End of Life Carbon Footprint Reference": "EoL Ref",
-                "Material End of LIfe Carbon Footprint (Kg CO2e)": "EoL CO2"
+                "Sourcing and Processing Carbon Footprint Reference": "Sourcing Processing EF Ref", "Material Part Sourcing and Processing Carbon Footprint (Kg CO2e)": "Sourcing Processing (Kg CO2e)",
+                "Material Mfg Process": "Mfg Process", "Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight)": "Mfg Process EF (Kg CO2e/Kg)",
+                "Mfg Process Carbon Footprint Reference": "Mfg Process EF Ref", "Material Part Mfg Process Carbon Footprint (Kg CO2e)": "Mfg (Kg CO2e)",
+                "Material Journey Method": "Journey Method", "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Journey Distance",
+                "Transport. Published Carbon Footprint (Kg CO2e/Kg-Km)": "Journey EF (Kg CO2e/Kg-Km)", "Transport. Carbon Footprint Reference": "Journey Method EF Ref",
+                "Material Part Journey Carbon Footprint (Kg CO2e)": "Journey (Kg CO2e)", "Material End of Life": "End of Life",
+                "Published End of Life Carbon Footprint (Kg CO2e/Kg weight)": "End of Life EF (Kg CO2e/Kg weight)", "End of Life Carbon Footprint Reference": "End of Life EF Ref",
+                "Material End of LIfe Carbon Footprint (Kg CO2e)": "End of Life (Kg CO2e)"
             };
 
             const headerCells = table.querySelectorAll('thead th');
