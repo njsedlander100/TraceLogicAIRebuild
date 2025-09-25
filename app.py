@@ -1387,6 +1387,7 @@ HTML_TEMPLATE = """
         async function runCompleteAnalysis() {
             clearResults();
             const productName = document.getElementById('product-input').value;
+            const upc = document.getElementById('upc-input').value.trim();
             
             try {
                 // Step 1: Category Research (formerly General Research)
