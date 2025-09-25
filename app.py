@@ -1513,7 +1513,8 @@ HTML_TEMPLATE = """
                         productBOM: analysisState.productBOM,
                         prompt: document.getElementById('image-prompt').value,
                         visionLLM: visionLLM,
-                        countryOfOrigin: countryOfOrigin
+                        countryOfOrigin: countryOfOrigin,
+                        upc: upc
                     });
                     analysisState.imageAnalysis = imageData.result;
                     addResult('Step 3: Multi-Image Product Analysis', analysisState.imageAnalysis, '📷');
