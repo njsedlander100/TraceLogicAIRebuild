@@ -344,6 +344,12 @@ HTML_TEMPLATE = """
                 <label for="country-of-origin-input">Country of Origin (Optional) 👇</label>
                 <input type="text" id="country-of-origin-input" placeholder="e.g., China, USA (Overrides research if filled)">
             </div>
+            
+            <div class="form-group">
+                <label for="upc-input">UPC (Optional) 👇</label>
+                <input type="text" id="upc-input" placeholder="Enter UPC to override research">
+            </div>
+            
             <div class="expander">
                 <div class="expander-header" onclick="toggleExpander('research')">Category Research 👇</div>
                 <div class="expander-content" id="research-content">
@@ -1383,6 +1389,8 @@ HTML_TEMPLATE = """
         async function runCompleteAnalysis() {
             clearResults();
             const productName = document.getElementById('product-input').value;
+            const upc = document.getElementById('upc-input').value.trim();
+
             
             try {
                 // Step 1: Category Research (formerly General Research)
@@ -1556,7 +1564,8 @@ HTML_TEMPLATE = """
                     calculatedBOM: analysisState.calculatedBOM ? JSON.stringify(analysisState.calculatedBOM) : null,
                     generalResearch: analysisState.generalResearch,
                     prompt: document.getElementById('reconciliation-prompt').value,
-                    countryOfOrigin: countryOfOrigin // NEW: Pass the value to the backend
+                    countryOfOrigin: countryOfOrigin, // Pass the value to the backend
+                    upc: upc // <-- ADD THIS LINE
                 });
                 analysisState.finalBOM = reconciliationData.result;
                 addResult('Step 4: Final Product Assessment', analysisState.finalBOM, '📊');
@@ -2204,9 +2213,14 @@ def reconciliation_api():
     prompt = data.get('prompt')
     llm_choice = data.get('llm', 'perplexity')
     country_of_origin = data.get('countryOfOrigin', '')
+    upc = data.get('upc', '')
 
     current_date = datetime.now().strftime('%B %d, %Y')
     prompt_with_date = prompt.replace('[Current date]', current_date)
+
+    # Handle UPC override
+    if upc:
+        prompt_with_date = prompt_with_date.replace('[Extract from product research or estimate based on product type]', upc)
 
     # This logic remains to ensure the user-specified country is used in the report text
     override_instruction = ""
