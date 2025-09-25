@@ -2210,9 +2210,14 @@ def reconciliation_api():
     prompt = data.get('prompt')
     llm_choice = data.get('llm', 'perplexity')
     country_of_origin = data.get('countryOfOrigin', '')
+    upc = data.get('upc', '')
 
     current_date = datetime.now().strftime('%B %d, %Y')
     prompt_with_date = prompt.replace('[Current date]', current_date)
+
+    # Handle UPC override
+    if upc:
+        prompt_with_date = prompt_with_date.replace('[Extract from product research or estimate based on product type]', upc)
 
     # This logic remains to ensure the user-specified country is used in the report text
     override_instruction = ""
