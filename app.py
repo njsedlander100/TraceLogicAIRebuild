@@ -1078,15 +1078,15 @@ HTML_TEMPLATE = """
             const columnsToHide = [3, 4, 5, 6, 7]; // Columns D-H
 
             const headerMap = {
-                "Part": "Part", "Material": "Material", "Material Source Country": "Sourcing/Processing",
-                "Material Part Weight (Kg)": "Weight (Kg)", "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Sourcing Processing EF(CO2e/Kg)",
+                "Part": "Part", "Material": "Material", "Material Source Country": "Sourcing/ Processing Country",
+                "Material Part Weight (Kg)": "Part Weight (Kg)", "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Sourcing Processing EF (CO2e/Kg)",
                 "Sourcing and Processing Carbon Footprint Reference": "Sourcing Processing EF Ref", "Material Part Sourcing and Processing Carbon Footprint (Kg CO2e)": "Sourcing Processing (Kg CO2e)",
                 "Material Mfg Process": "Mfg Process", "Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight)": "Mfg Process EF (Kg CO2e/Kg)",
                 "Mfg Process Carbon Footprint Reference": "Mfg Process EF Ref", "Material Part Mfg Process Carbon Footprint (Kg CO2e)": "Mfg (Kg CO2e)",
-                "Material Journey Method": "Journey Method (km)", "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Journey Distance",
-                "Transport. Published Carbon Footprint (Kg CO2e/Kg-Km)": "Journey EF (Kg CO2e/Kg-Km)", "Transport. Carbon Footprint Reference": "Journey Method EF Ref",
+                "Material Journey Method": "Journey Method", "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Journey Distance (Km)",
+                "Transport. Published Carbon Footprint (Kg CO2e/Kg-Km)": "Journey Method EF (Kg CO2e/Kg-Km)", "Transport. Carbon Footprint Reference": "Journey Method EF Ref",
                 "Material Part Journey Carbon Footprint (Kg CO2e)": "Journey (Kg CO2e)", "Material End of Life": "End of Life",
-                "Published End of Life Carbon Footprint (Kg CO2e/Kg weight)": "End of Life EF (Kg CO2e/Kg weight)", "End of Life Carbon Footprint Reference": "End of Life EF Ref",
+                "Published End of Life Carbon Footprint (Kg CO2e/Kg weight)": "End of Life EF (Kg CO2e/Kg)", "End of Life Carbon Footprint Reference": "End of Life EF Ref",
                 "Material End of LIfe Carbon Footprint (Kg CO2e)": "End of Life (Kg CO2e)"
             };
 
