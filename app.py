@@ -1111,14 +1111,10 @@ HTML_TEMPLATE = """
             });
 
             // --- 3. BUILD THE PDF ---
-// --- 3. BUILD THE PDF ---
-           doc.setFontSize(9);
-           doc.text(headerText, 15, 20);
+            doc.setFontSize(9);
+            doc.text(headerText, 15, 20);
 
-           doc.setFontSize(12); // Sets the font size for the title
-           doc.text("Bill of Materials (BOM) and Material/Energy Flows", 15, 60); // Adds the title
-
-           const tableStartY = 65;
+            const tableStartY = 65;
             doc.autoTable({
                 head: head, body: body, foot: foot, startY: tableStartY, theme: 'grid',
                 styles: { fontSize: 5, cellPadding: 1, halign: 'center' },
@@ -1131,7 +1127,7 @@ HTML_TEMPLATE = """
            doc.text("Part Journey = Material Sourcing/Processing Country to Mfg Country of Origin to USA", 15, doc.lastAutoTable.finalY + 10);
            doc.text("EF = Emissions Factor", 15, doc.lastAutoTable.finalY + 15);
 
-           let finalY = doc.lastAutoTable.finalY + 25; // Increased spacing to avoid overlap
+           let finalY = doc.lastAutoTable.finalY + 20; // Increased spacing to avoid overlap
            const pageHeight = doc.internal.pageSize.height;
            const margin = 15;
            // Split the long text block into lines that fit the page width
