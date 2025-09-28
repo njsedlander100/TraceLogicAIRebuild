@@ -1149,7 +1149,7 @@ HTML_TEMPLATE = """
 
             // --- 4. SAVE THE PDF ---
             const productName = document.getElementById('product-input').value.replace(/[^a-zA-Z0-9]/g, '_');
-            doc.save(`TraceLogic_Assessment_${productName}.pdf`);
+            doc.save(`${productName}.pdf`);
         }
 
         function exportPageHTML() {
