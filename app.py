@@ -1111,10 +1111,22 @@ HTML_TEMPLATE = """
             });
 
             // --- 3. BUILD THE PDF ---
-            doc.setFontSize(9);
-            doc.text(headerText, 15, 20);
+// --- 3. BUILD THE PDF ---
+           doc.setFontSize(9);
+           const headerLines = doc.splitTextToSize(headerText, doc.internal.pageSize.width - 30);
+           doc.text(headerLines, 15, 20);
 
-            const tableStartY = 65;
+           // Calculate where the header text ends
+           const headerHeight = doc.getTextDimensions(headerLines).h;
+           
+           // Place the BOM title dynamically right below the header text
+           const titleY = 20 + headerHeight + 10; // 10 units of space
+           doc.setFontSize(12);
+           doc.text("Bill of Materials (BOM) and Material/Energy Flows", 15, titleY);
+
+           // Start the table dynamically below the new title
+           const tableStartY = titleY + 8;
+           
             doc.autoTable({
                 head: head, body: body, foot: foot, startY: tableStartY, theme: 'grid',
                 styles: { fontSize: 5, cellPadding: 1, halign: 'center' },
