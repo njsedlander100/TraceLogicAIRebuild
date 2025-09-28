@@ -253,6 +253,10 @@ Create a comprehensive professional assessment following this EXACT format and s
 - Country of Origin: [Manufacturing country from research]
 
 **Bill of Materials (BOM) and Material/Energy Flows**
+
+Create a table using the CALCULATED MATHEMATICAL DATA provided.
+
+**Bill of Materials (BOM) and Material/Energy Flows**
 Create a table using the CALCULATED MATHEMATICAL DATA provided. Only include parts and materials, not space or air. Use these EXACT columns (use | delimiters):
 
 Part | Material | Material Source Country | Volume Percentage (%) | Published Material Density (lb/ft^3) | Material Volume Density | Volume Density Percentage (%) | Product Weight (lbs) | Material Part Weight (Lbs) | Material Part Weight (Kg) | Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight) | Sourcing and Processing Carbon Footprint Reference | Material Part Sourcing and Processing Carbon Footprint (Kg CO2e) | Material Mfg Process | Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight) | Mfg Process Carbon Footprint Reference | Material Part Mfg Process Carbon Footprint (Kg CO2e) | Material Journey Method | Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA) | Transport Published Carbon Footprint (Kg CO2e/Kg-Km) | Transport. Carbon Footprint Reference | Material Part Journey Carbon Footprint (Kg CO2e) | Material End of Life | Published End of Life Carbon Footprint (Kg CO2e/Kg weight) | End of Life Carbon Footprint Reference | Material End of LIfe Carbon Footprint (Kg CO2e)
@@ -267,6 +271,9 @@ Part | Material | Material Source Country | Volume Percentage (%) | Published Ma
 - Material weights are calculated using density distribution, not simple volume percentages
 - Use "Ocean Shipping" or "Rail Transport" for Material Journey Method
 - Use the total product weight from earlier steps for the Product Weight column
+
+Part Journey = Material Sourcing/Processing Country to Mfg Country of Origin to USA
+EF = Emissions Factor
 
 **System Boundary**
 Cradle-to-Gate assessment includes all materials sourced and processed, transported to manufacturing facility, manufactured and assembled, and transported to nearest port in USA. End of life landfill emissions are also included.
@@ -1121,12 +1128,6 @@ HTML_TEMPLATE = """
                 headStyles: { fontStyle: 'bold', fillColor: [220, 220, 220], textColor: [0, 0, 0] },
                 footStyles: { fontStyle: 'bold', fillColor: [240, 240, 240], textColor: [0, 0, 0] }
             });
-            
-            // --- ADD THIS BLOCK FOR THE FOOTER ---
-            let finalY = doc.lastAutoTable.finalY; // Gets where the table ended
-            doc.setFontSize(8);
-            doc.text("Part Journey = Material Sourcing/Processing Country to Mfg Country of Origin to USA", 15, finalY + 10);
-            doc.text("EF = Emissions Factor", 15, finalY + 15);
 
             // **NEW LOGIC**: Handle multi-page text for the footer
             let finalY = doc.lastAutoTable.finalY + 10;
@@ -1148,7 +1149,7 @@ HTML_TEMPLATE = """
 
             // --- 4. SAVE THE PDF ---
             const productName = document.getElementById('product-input').value.replace(/[^a-zA-Z0-9]/g, '_');
-            doc.save(`${productName}.pdf`);
+            doc.save(`TraceLogic_Assessment_${productName}.pdf`);
         }
 
         function exportPageHTML() {
