@@ -1056,7 +1056,7 @@ HTML_TEMPLATE = """
                 const bomTitle = 'Bill of Materials (BOM) and Material/Energy Flows';
                 const systemBoundaryTitle = 'System Boundary';
 
-                const headerEndIndex = fullContent.indexOf(bomTitle) + bomTitle.length;
+                const headerEndIndex = fullContent.indexOf(bomTitle);
                 headerText = fullContent.substring(0, headerEndIndex).trim();
                 
                 const footerStartIndex = fullContent.indexOf(systemBoundaryTitle);
