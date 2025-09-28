@@ -1122,13 +1122,16 @@ HTML_TEMPLATE = """
                 footStyles: { fontStyle: 'bold', fillColor: [240, 240, 240], textColor: [0, 0, 0] }
             });
 
-            // **NEW LOGIC**: Handle multi-page text for the footer
-            let finalY = doc.lastAutoTable.finalY + 10;
-            doc.setFontSize(8);
-            const pageHeight = doc.internal.pageSize.height;
-            const margin = 15;
-            // Split the long text block into lines that fit the page width
-            const textLines = doc.splitTextToSize(footerText, doc.internal.pageSize.width - (margin * 2));
+// **NEW LOGIC**: Handle multi-page text for the footer
+           doc.setFontSize(8);
+           doc.text("Part Journey = Material Sourcing/Processing Country to Mfg Country of Origin to USA", 15, doc.lastAutoTable.finalY + 10);
+           doc.text("EF = Emissions Factor", 15, doc.lastAutoTable.finalY + 15);
+
+           let finalY = doc.lastAutoTable.finalY + 20; // Increased spacing to avoid overlap
+           const pageHeight = doc.internal.pageSize.height;
+           const margin = 15;
+           // Split the long text block into lines that fit the page width
+           const textLines = doc.splitTextToSize(footerText, doc.internal.pageSize.width - (margin * 2));
             
             textLines.forEach(line => {
                 // If the next line will go off the page, add a new page
