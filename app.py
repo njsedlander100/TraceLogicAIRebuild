@@ -1115,21 +1115,18 @@ HTML_TEMPLATE = """
             doc.text(headerText, 15, 20);
 
             const tableStartY = 65;
-            doc.setFontSize(12);
-            doc.text("Bill of Materials (BOM) and Material/Energy Flows", 15, tableStartY - 5);
-            doc.setFontSize(9); // Reset font size for other text
-            
             doc.autoTable({
                 head: head, body: body, foot: foot, startY: tableStartY, theme: 'grid',
                 styles: { fontSize: 5, cellPadding: 1, halign: 'center' },
                 headStyles: { fontStyle: 'bold', fillColor: [220, 220, 220], textColor: [0, 0, 0] },
                 footStyles: { fontStyle: 'bold', fillColor: [240, 240, 240], textColor: [0, 0, 0] }
             });
-
-            let postTableY = doc.lastAutoTable.finalY + 6;
-            doc.setFontSize(7);
-            doc.text("Part Journey = Material Sourcing/Processing Country to Mfg Country of Origin to USA", 15, postTableY);
-            doc.text("EF = Emissions Factor", 15, postTableY + 4);
+            
+            // --- ADD THIS BLOCK FOR THE FOOTER ---
+            let finalY = doc.lastAutoTable.finalY; // Gets where the table ended
+            doc.setFontSize(8);
+            doc.text("Part Journey = Material Sourcing/Processing Country to Mfg Country of Origin to USA", 15, finalY + 10);
+            doc.text("EF = Emissions Factor", 15, finalY + 15);
 
             // **NEW LOGIC**: Handle multi-page text for the footer
             let finalY = doc.lastAutoTable.finalY + 10;
