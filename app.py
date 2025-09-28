@@ -1060,8 +1060,8 @@ HTML_TEMPLATE = """
                 }
                 const fullContent = rawContentDiv.textContent; 
                 
-                const bomTitle = 'Bill of Materials (BOM) and Material/Energy Flows';
-                const systemBoundaryTitle = 'System Boundary';
+                const bomTitle = 'General Product Attributes';
+                const systemBoundaryTitle = 'Part Journey';
 
                 const headerEndIndex = fullContent.indexOf(bomTitle) + bomTitle.length;
                 headerText = fullContent.substring(0, headerEndIndex).trim();
