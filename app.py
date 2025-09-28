@@ -1115,12 +1115,21 @@ HTML_TEMPLATE = """
             doc.text(headerText, 15, 20);
 
             const tableStartY = 65;
+            doc.setFontSize(12);
+            doc.text("Bill of Materials (BOM) and Material/Energy Flows", 15, tableStartY - 5);
+            doc.setFontSize(9); // Reset font size for other text
+            
             doc.autoTable({
                 head: head, body: body, foot: foot, startY: tableStartY, theme: 'grid',
                 styles: { fontSize: 5, cellPadding: 1, halign: 'center' },
                 headStyles: { fontStyle: 'bold', fillColor: [220, 220, 220], textColor: [0, 0, 0] },
                 footStyles: { fontStyle: 'bold', fillColor: [240, 240, 240], textColor: [0, 0, 0] }
             });
+
+            let postTableY = doc.lastAutoTable.finalY + 6;
+            doc.setFontSize(7);
+            doc.text("Part Journey = Material Sourcing/Processing Country to Mfg Country of Origin to USA", 15, postTableY);
+            doc.text("EF = Emissions Factor", 15, postTableY + 4);
 
             // **NEW LOGIC**: Handle multi-page text for the footer
             let finalY = doc.lastAutoTable.finalY + 10;
@@ -1142,7 +1151,7 @@ HTML_TEMPLATE = """
 
             // --- 4. SAVE THE PDF ---
             const productName = document.getElementById('product-input').value.replace(/[^a-zA-Z0-9]/g, '_');
-            doc.save(`TraceLogic_Assessment_${productName}.pdf`);
+            doc.save(`${productName}.pdf`);
         }
 
         function exportPageHTML() {
