@@ -1114,7 +1114,7 @@ HTML_TEMPLATE = """
            const headerHeight = doc.getTextDimensions(headerLines).h;
            const titleY = 20 + headerHeight + 10; 
            
-           doc.setFontSize(8); 
+           doc.setFontSize(9); 
            doc.text("Bill of Materials (BOM) and Material/Energy Flows", 15, titleY);
 
            // FIX 1: Moves table closer to header by reducing the Y offset
@@ -1130,7 +1130,7 @@ HTML_TEMPLATE = """
            doc.text("Part Journey = Material Sourcing/Processing Country to Mfg Country of Origin to USA", 15, doc.lastAutoTable.finalY + 4);
            doc.text("EF = Emissions Factor", 15, doc.lastAutoTable.finalY + 7);
 
-           let finalY = doc.lastAutoTable.finalY + 12;
+           let finalY = doc.lastAutoTable.finalY + 20;
            const pageHeight = doc.internal.pageSize.height;
            const margin = 15;
            doc.setFontSize(9); // Set the font size BEFORE the buggy function runs.
