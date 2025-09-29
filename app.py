@@ -268,7 +268,7 @@ Part | Material | Material Source Country | Volume Percentage (%) | Published Ma
 - Use "Ocean Shipping" or "Rail Transport" for Material Journey Method
 - Use the total product weight from earlier steps for the Product Weight column
 
-**System Boundary**
+***System Boundary**
 Cradle-to-Gate assessment includes all materials sourced and processed, transported to manufacturing facility, manufactured and assembled, and transported to nearest port in USA. End of life landfill emissions are also included.
 
 **Product URL Match:**
@@ -1133,16 +1133,18 @@ HTML_TEMPLATE = """
            let finalY = doc.lastAutoTable.finalY + 12;
            const pageHeight = doc.internal.pageSize.height;
            const margin = 15;
+           doc.setFontSize(9); // Set the font size BEFORE the buggy function runs.
            const textLines = doc.splitTextToSize(footerText, doc.internal.pageSize.width - (margin * 2));
             
             textLines.forEach(line => {
-                if (finalY > pageHeight - margin) {
-                    doc.addPage();
-                    finalY = margin; 
-                }
-                doc.text(line, margin, finalY);
-                finalY += 4; 
-            });
+               if (finalY > pageHeight - margin) {
+                   doc.addPage();
+                   finalY = margin; 
+               }
+               doc.setFontSize(9); // This is the new line to fix the font size
+               doc.text(line, margin, finalY);
+               finalY += 4; 
+           });
 
             const productName = document.getElementById('product-input').value.replace(/[^a-zA-Z0-9]/g, '_');
             doc.save(`TraceLogic_Assessment_${productName}.pdf`);
