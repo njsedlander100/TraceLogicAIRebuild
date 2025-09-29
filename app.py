@@ -1036,29 +1036,23 @@ HTML_TEMPLATE = """
 
         function exportPDF(tableId) {
             const { jsPDF } = window.jspdf;
-            // Use jsPDF in landscape mode to give more room for the table
             const doc = new jsPDF({ orientation: 'landscape' });
 
-            // --- 1. GATHER DATA FROM THE PAGE ---
             let headerText = '';
             let footerText = '';
             const step4Result = Array.from(document.querySelectorAll('.result h3')).find(h3 => h3.textContent.includes('Step 4: Final Product Assessment'))?.parentElement;
 
             if (step4Result) {
-                // This now correctly finds the hidden div created by addResult
                 const rawContentDiv = step4Result.querySelector('.raw-step4-content');
                 if (!rawContentDiv) {
-                    alert("Could not find the raw assessment text. The page structure might have changed.");
+                    alert("Could not find the raw assessment text.");
                     return;
                 }
                 const fullContent = rawContentDiv.textContent; 
-                
                 const bomTitle = 'Bill of Materials (BOM) and Material/Energy Flows';
-                const systemBoundaryTitle = 'System Boundary';
-
+                const systemBoundaryTitle = '**System Boundary**';
                 const headerEndIndex = fullContent.indexOf(bomTitle);
                 headerText = fullContent.substring(0, headerEndIndex).trim();
-                
                 const footerStartIndex = fullContent.indexOf(systemBoundaryTitle);
                 if (footerStartIndex !== -1) {
                     footerText = fullContent.substring(footerStartIndex).trim();
@@ -1068,23 +1062,26 @@ HTML_TEMPLATE = """
                 return;
             }
 
-            // --- 2. PROCESS TABLE DATA (This part remains the same) ---
             const table = document.getElementById(tableId);
             if (!table) { alert("BOM table not found."); return; }
             
             const head = [];
             const body = [];
             const foot = [];
-            const columnsToHide = [3, 4, 5, 6, 7]; // Columns D-H
+            const columnsToHide = [3, 4, 5, 6, 7]; 
 
+            // **CHANGE 4 & 5**: Renames columns just for the PDF export
             const headerMap = {
                 "Part": "Part", "Material": "Material", "Material Source Country": "Sourcing/ Processing Country",
-                "Material Part Weight (Kg)": "Part Weight (Kg)", "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Sourcing Processing EF (CO2e/Kg)",
+                "Part Weight (Lbs)": "Part Weight (Lbs)", // Correctly maps the new name
+                "Material Part Weight (Kg)": "Part Weight (Kg)", 
+                "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Sourcing Processing EF (CO2e/Kg)",
                 "Sourcing and Processing Carbon Footprint Reference": "Sourcing Processing EF Ref", "Material Part Sourcing and Processing Carbon Footprint (Kg CO2e)": "Sourcing Processing (Kg CO2e)",
                 "Material Mfg Process": "Mfg Process", "Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight)": "Mfg Process EF (Kg CO2e/Kg)",
                 "Mfg Process Carbon Footprint Reference": "Mfg Process EF Ref", "Material Part Mfg Process Carbon Footprint (Kg CO2e)": "Mfg (Kg CO2e)",
                 "Material Journey Method": "Journey Method", "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Journey Distance (Km)",
-                "Transport. Published Carbon Footprint (Kg CO2e/Kg-Km)": "Journey Method EF (Kg CO2e/Kg-Km)", "Transport. Carbon Footprint Reference": "Journey Method EF Ref",
+                "Journey Method EF (Kg CO2e/Kg-Km)": "Journey Method EF (Kg CO2e/Kg-Km)", // Correctly maps the new name
+                "Transport. Carbon Footprint Reference": "Journey Method EF Ref",
                 "Material Part Journey Carbon Footprint (Kg CO2e)": "Journey (Kg CO2e)", "Material End of Life": "End of Life",
                 "Published End of Life Carbon Footprint (Kg CO2e/Kg weight)": "End of Life EF (Kg CO2e/Kg)", "End of Life Carbon Footprint Reference": "End of Life EF Ref",
                 "Material End of LIfe Carbon Footprint (Kg CO2e)": "End of Life (Kg CO2e)"
@@ -1110,23 +1107,17 @@ HTML_TEMPLATE = """
                 }
             });
 
-            // --- 3. BUILD THE PDF ---
-// --- 3. BUILD THE PDF ---
            doc.setFontSize(9);
            const headerLines = doc.splitTextToSize(headerText, doc.internal.pageSize.width - 30);
            doc.text(headerLines, 15, 20);
 
-           // Calculate where the header text ends
            const headerHeight = doc.getTextDimensions(headerLines).h;
-           
-           // Place the BOM title dynamically right below the header text
-           const titleY = 20 + headerHeight + 10; // 10 units of space
-           doc.setFontSize(9);
+           const titleY = 20 + headerHeight + 10; 
+           // **CHANGE 1**: Set BOM header font size to 8
+           doc.setFontSize(8); 
            doc.text("Bill of Materials (BOM) and Material/Energy Flows", 15, titleY);
 
-           // Start the table dynamically below the new title
            const tableStartY = titleY + 8;
-           
             doc.autoTable({
                 head: head, body: body, foot: foot, startY: tableStartY, theme: 'grid',
                 styles: { fontSize: 5, cellPadding: 1, halign: 'center' },
@@ -1134,28 +1125,25 @@ HTML_TEMPLATE = """
                 footStyles: { fontStyle: 'bold', fillColor: [240, 240, 240], textColor: [0, 0, 0] }
             });
 
-// **NEW LOGIC**: Handle multi-page text for the footer
-           doc.setFontSize(8);
-           doc.text("Part Journey = Material Sourcing/Processing Country to Mfg Country of Origin to USA", 15, doc.lastAutoTable.finalY + 10);
-           doc.text("EF = Emissions Factor", 15, doc.lastAutoTable.finalY + 15);
+           // **CHANGE 2**: Set footer font size to 5 and adjust spacing
+           doc.setFontSize(5);
+           doc.text("Part Journey = Material Sourcing/Processing Country to Mfg Country of Origin to USA", 15, doc.lastAutoTable.finalY + 4);
+           doc.text("EF = Emissions Factor", 15, doc.lastAutoTable.finalY + 7);
 
-           let finalY = doc.lastAutoTable.finalY + 20; // Increased spacing to avoid overlap
+           let finalY = doc.lastAutoTable.finalY + 12;
            const pageHeight = doc.internal.pageSize.height;
            const margin = 15;
-           // Split the long text block into lines that fit the page width
            const textLines = doc.splitTextToSize(footerText, doc.internal.pageSize.width - (margin * 2));
             
             textLines.forEach(line => {
-                // If the next line will go off the page, add a new page
                 if (finalY > pageHeight - margin) {
                     doc.addPage();
-                    finalY = margin; // Reset Y position to the top margin
+                    finalY = margin; 
                 }
                 doc.text(line, margin, finalY);
-                finalY += 4; // Move Y down for the next line
+                finalY += 4; 
             });
 
-            // --- 4. SAVE THE PDF ---
             const productName = document.getElementById('product-input').value.replace(/[^a-zA-Z0-9]/g, '_');
             doc.save(`TraceLogic_Assessment_${productName}.pdf`);
         }
