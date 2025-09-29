@@ -1050,7 +1050,7 @@ HTML_TEMPLATE = """
                 }
                 const fullContent = rawContentDiv.textContent; 
                 const bomTitle = 'Bill of Materials (BOM) and Material/Energy Flows';
-                const systemBoundaryTitle = '**System Boundary**';
+                const systemBoundaryTitle = 'System Boundary';
                 const headerEndIndex = fullContent.indexOf(bomTitle);
                 headerText = fullContent.substring(0, headerEndIndex).trim();
                 const footerStartIndex = fullContent.indexOf(systemBoundaryTitle);
@@ -1070,17 +1070,17 @@ HTML_TEMPLATE = """
             const foot = [];
             const columnsToHide = [3, 4, 5, 6, 7]; 
 
-            // **CHANGE 4 & 5**: Renames columns just for the PDF export
+            // FIX 2 & 3: Renames columns just for the PDF export
             const headerMap = {
                 "Part": "Part", "Material": "Material", "Material Source Country": "Sourcing/ Processing Country",
-                "Part Weight (Lbs)": "Part Weight (Lbs)", // Correctly maps the new name
+                "Material Part Weight (Lbs)": "Part Weight (Lbs)", // Renamed
                 "Material Part Weight (Kg)": "Part Weight (Kg)", 
                 "Published Sourcing and Processing Carbon Footprint (Kg CO2e/Kg weight)": "Sourcing Processing EF (CO2e/Kg)",
                 "Sourcing and Processing Carbon Footprint Reference": "Sourcing Processing EF Ref", "Material Part Sourcing and Processing Carbon Footprint (Kg CO2e)": "Sourcing Processing (Kg CO2e)",
                 "Material Mfg Process": "Mfg Process", "Mfg Process Published Carbon Footprint (Kg CO2e/Kg weight)": "Mfg Process EF (Kg CO2e/Kg)",
                 "Mfg Process Carbon Footprint Reference": "Mfg Process EF Ref", "Material Part Mfg Process Carbon Footprint (Kg CO2e)": "Mfg (Kg CO2e)",
                 "Material Journey Method": "Journey Method", "Material Journey Distance (Km, Material Source Country-to-Country of Origin-to-USA)": "Journey Distance (Km)",
-                "Journey Method EF (Kg CO2e/Kg-Km)": "Journey Method EF (Kg CO2e/Kg-Km)", // Correctly maps the new name
+                "Transport Published Carbon Footprint (Kg CO2e/Kg-Km)": "Journey Method EF (Kg CO2e/Kg-Km)", // Renamed
                 "Transport. Carbon Footprint Reference": "Journey Method EF Ref",
                 "Material Part Journey Carbon Footprint (Kg CO2e)": "Journey (Kg CO2e)", "Material End of Life": "End of Life",
                 "Published End of Life Carbon Footprint (Kg CO2e/Kg weight)": "End of Life EF (Kg CO2e/Kg)", "End of Life Carbon Footprint Reference": "End of Life EF Ref",
@@ -1113,11 +1113,12 @@ HTML_TEMPLATE = """
 
            const headerHeight = doc.getTextDimensions(headerLines).h;
            const titleY = 20 + headerHeight + 10; 
-           // **CHANGE 1**: Set BOM header font size to 8
+           
            doc.setFontSize(8); 
            doc.text("Bill of Materials (BOM) and Material/Energy Flows", 15, titleY);
 
-           const tableStartY = titleY + 8;
+           // FIX 1: Moves table closer to header by reducing the Y offset
+           const tableStartY = titleY + 5; 
             doc.autoTable({
                 head: head, body: body, foot: foot, startY: tableStartY, theme: 'grid',
                 styles: { fontSize: 5, cellPadding: 1, halign: 'center' },
@@ -1125,7 +1126,6 @@ HTML_TEMPLATE = """
                 footStyles: { fontStyle: 'bold', fillColor: [240, 240, 240], textColor: [0, 0, 0] }
             });
 
-           // **CHANGE 2**: Set footer font size to 5 and adjust spacing
            doc.setFontSize(5);
            doc.text("Part Journey = Material Sourcing/Processing Country to Mfg Country of Origin to USA", 15, doc.lastAutoTable.finalY + 4);
            doc.text("EF = Emissions Factor", 15, doc.lastAutoTable.finalY + 7);
