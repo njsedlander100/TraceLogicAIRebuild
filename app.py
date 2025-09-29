@@ -1121,7 +1121,7 @@ HTML_TEMPLATE = """
            
            // Place the BOM title dynamically right below the header text
            const titleY = 20 + headerHeight + 10; // 10 units of space
-           doc.setFontSize(12);
+           doc.setFontSize(9);
            doc.text("Bill of Materials (BOM) and Material/Energy Flows", 15, titleY);
 
            // Start the table dynamically below the new title
