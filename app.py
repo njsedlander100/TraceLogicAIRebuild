@@ -58,6 +58,11 @@ HTML_TEMPLATE = """
                 <label for="country-of-origin-input">Country of Origin (Optional) 👇</label>
                 <input type="text" id="country-of-origin-input" placeholder="e.g., China, USA (Overrides research if filled)">
             </div>
+
+            <div class="form-group">
+                <label for="product-weight-input">Product Weight (Lbs) (Optional) 👇</label>
+                <input type="text" id="product-weight-input" placeholder="e.g., 25.5 (Overrides research if filled)">
+            </div>
             <div class="form-group">
                 <label for="upc-input">UPC (Optional) 👇</label>
                 <input type="text" id="upc-input" placeholder="Enter UPC to override research">
@@ -1103,10 +1108,14 @@ HTML_TEMPLATE = """
             }
         }
         
-async function runCompleteAnalysis() {
+        async function runCompleteAnalysis() {
             clearResults();
             const productName = document.getElementById('product-input').value;
-            
+            // Define all overrides at the top to ensure they are available for all steps
+            const countryOfOrigin = document.getElementById('country-of-origin-input').value.trim();
+            const upc = document.getElementById('upc-input').value.trim();
+            const productWeight = document.getElementById('product-weight-input').value.trim(); 
+        
             try {
                 // Step 1: Category Research (formerly General Research)
                 const researchMethod = document.getElementById('research-method-select').value;
@@ -1214,8 +1223,9 @@ async function runCompleteAnalysis() {
                     product: productName,
                     prompt: document.getElementById('product-prompt').value,
                     generalResearch: analysisState.generalResearch,
-                    urlResults: urlResults, // Pass URL results as context
-                    llm: researchLLM
+                    urlResults: urlResults, 
+                    llm: researchLLM,
+                    productWeight: productWeight // <-- CORRECTED: Pass the weight to Step 2b
                 });
                 
                 analysisState.productBOM = productData.result;
@@ -1225,13 +1235,13 @@ async function runCompleteAnalysis() {
                 if (analysisState.selectedImageUrls && analysisState.selectedImageUrls.length > 0) {
                     showLoading('📷 Step 3/6: Analyzing multiple product images...');
                     const visionLLM = document.getElementById('vision-llm-select').value;
-                    const countryOfOrigin = document.getElementById('country-of-origin-input').value.trim();
                     const imageData = await callAPI('/api/multi-image-analysis', {
                         imageUrls: analysisState.selectedImageUrls,
                         productBOM: analysisState.productBOM,
                         prompt: document.getElementById('image-prompt').value,
                         visionLLM: visionLLM,
-                        countryOfOrigin: countryOfOrigin
+                        countryOfOrigin: countryOfOrigin,
+                        productWeight: productWeight // Pass the weight here as well for consistency
                     });
                     analysisState.imageAnalysis = imageData.result;
                     addResult('Step 3: Multi-Image Product Analysis', analysisState.imageAnalysis, '📷');
@@ -1244,7 +1254,8 @@ async function runCompleteAnalysis() {
                 showLoading('🧮 Step 3.5/7: Calculating BOM mathematics using researched data...');
                 try {
                     const mathData = await callAPI('/api/calculate-bom', {
-                        imageAnalysis: analysisState.imageAnalysis
+                        imageAnalysis: analysisState.imageAnalysis,
+                        productWeight: productWeight // Pass the override to the math step directly
                     });
                     analysisState.calculatedBOM = mathData.result;
                     
@@ -1265,15 +1276,12 @@ async function runCompleteAnalysis() {
                     addResult('Step 3.5: Mathematical BOM Calculations', mathSummary, '🧮');
                 } catch (error) {
                     addResult('❌ Math Calculation Error', `Failed to calculate BOM mathematics: ${error.message}`, '❌');
-                    // Continue with analysis even if math fails
                     analysisState.calculatedBOM = null;
                 }
                 
                 // Step 4: Final Product Assessment (formerly Final BOM Table)
                 showLoading('📊 Step 4/7: Creating final product assessment...');
-                const countryOfOrigin = document.getElementById('country-of-origin-input').value.trim();
-                const upc = document.getElementById('upc-input').value.trim();
-
+        
                 const reconciliationData = await callAPI('/api/reconciliation', {
                     researchBOM: analysisState.productBOM,
                     imageAnalysis: analysisState.imageAnalysis,
@@ -1281,7 +1289,8 @@ async function runCompleteAnalysis() {
                     generalResearch: analysisState.generalResearch,
                     prompt: document.getElementById('reconciliation-prompt').value,
                     countryOfOrigin: countryOfOrigin,
-                    upc: upc
+                    upc: upc,
+                    productWeight: productWeight
                 });
                 analysisState.finalBOM = reconciliationData.result;
                 addResult('Step 4: Final Product Assessment', analysisState.finalBOM, '📊');
@@ -1889,10 +1898,22 @@ def product_bom_api():
     product = data.get('product')
     prompt = data.get('prompt')
     general_research = data.get('generalResearch', '')
-    url_results = data.get('urlResults', '')  # NEW: Get URL results
+    url_results = data.get('urlResults', '')
     llm_choice = data.get('llm', 'perplexity')
+    product_weight = data.get('productWeight') # <-- ADD THIS LINE
+
+    # v-- ADD THIS LOGIC BLOCK --v
+    override_instruction = ""
+    if product_weight:
+        override_instruction = f"""
+**USER OVERRIDE:** The user has specified a product weight of **{product_weight} lbs**.
+You MUST use this weight value in your analysis. When you mention the product weight, use this value instead of any weight you find on the product pages.
+"""
+    # ^-- END OF NEW LOGIC BLOCK --^
     
-    full_prompt = f"""GENERAL PRODUCT KNOWLEDGE (Use this as your PRIMARY reference for materials and components):
+    # UPDATE full_prompt to include the override instruction
+    full_prompt = f"""{override_instruction}
+GENERAL PRODUCT KNOWLEDGE (Use this as your PRIMARY reference for materials and components):
 {'='*80}
 {general_research}
 {'='*80}
@@ -2115,27 +2136,34 @@ def url_search_test_api():
 def calculate_bom_api():
     data = request.json
     image_analysis = data.get('imageAnalysis', '')
-    
+    product_weight_override = data.get('productWeight') # <-- ADD THIS LINE
+
     if not image_analysis:
         return jsonify({'error': 'No image analysis data provided'}), 400
-    
+
     try:
-        # Extract materials from image analysis with researched properties
         materials, total_weight_from_earlier_steps = extract_materials_from_image_analysis(image_analysis)
-        
+
+        # v-- ADD THIS LOGIC BLOCK --v
+        total_weight_to_use = total_weight_from_earlier_steps
+        if product_weight_override:
+            try:
+                # If a valid weight override is provided, use it instead
+                total_weight_to_use = float(product_weight_override)
+            except (ValueError, TypeError):
+                # Handle cases where the input is not a valid number
+                print(f"Warning: Invalid weight override value '{product_weight_override}'. Falling back to researched weight.")
+        # ^-- END OF NEW LOGIC BLOCK --^
+
         if not materials:
             return jsonify({'error': 'No materials found in image analysis. Please ensure the image analysis includes material data with research.'}), 400
-        
-        if total_weight_from_earlier_steps <= 0:
+
+        # UPDATE THIS LINE to use the new variable
+        if total_weight_to_use <= 0:
             return jsonify({'error': 'Invalid total weight from earlier steps. Please ensure URL analysis provided valid product weight.'}), 400
-        
-        # Debug: Log the extracted data
-        print(f"DEBUG: Extracted {len(materials)} materials, total weight: {total_weight_from_earlier_steps} lbs")
-        for i, material in enumerate(materials):
-            print(f"  Material {i+1}: {material.get('name', 'Unknown')} - Volume: {material.get('volume_percentage', 0)}%, Density: {material.get('density_lb_ft3', 0)} lb/ft³")
-        
-        # Calculate all mathematical fields using researched data and provided total weight
-        calculated_bom = calculate_bom_math(materials, total_weight_from_earlier_steps)
+
+        # UPDATE THIS LINE to pass the correct weight to the calculation
+        calculated_bom = calculate_bom_math(materials, total_weight_to_use)
         
         # Prepare response with detailed breakdown
         response_data = {
