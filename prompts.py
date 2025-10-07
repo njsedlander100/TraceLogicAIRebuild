@@ -132,16 +132,6 @@ Step 5: Technical Data and Source Verification
 #####################################################################################################################################################################################
 DEFAULT_IMAGE_PROMPT = """
 
-
-
-
-
-
-
-
-
-
-
 Based on the Product BOM analysis above and this image of the product, provide a detailed visual assessment that identifies:
 
 1.  **MATERIAL CORRECTIONS**: Compare what you see in the image vs. the BOM analysis
