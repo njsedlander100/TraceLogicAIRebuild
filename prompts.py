@@ -41,7 +41,8 @@ From the SerpAPI search results provided, identify URLs that contain:
 
 **STEP 2: EXTRACT PRODUCT SPECIFICATIONS**
 For each identified URL, extract the following information from the search snippet or description:
-- Product weight
+- Product weight (usually expressed in "lbs")
+- Country of Origin (usually expressed as "Made in [country]" or "Country of Origin: [Country]"
 - Dimensions (length, width, height)
 - Capacity/volume
 - Key features and specifications
@@ -58,11 +59,11 @@ Provide a structured summary of:
 - **Retailer URLs:** [Extract other retailer URLs from search results if present]
 
 **EXTRACTED SPECIFICATIONS FROM SEARCH RESULTS:**
-- Product weight: [From search snippets]
-- Dimensions: [From search snippets]
-- Capacity: [From search snippets]
-- Key features: [From search snippets]
-- Price range: [From search snippets]
+- Product weight: [From search snippets or description]
+- Dimensions: [From search snippets or description]
+- Capacity: [From search snippets or description]
+- Key features: [From search snippets or description]
+- Price range: [From search snippets or description]
 
 **SEARCH RESULT ANALYSIS:**
 - Total URLs found: [Count of relevant product URLs]
@@ -104,6 +105,8 @@ Step 2: Analyze SerpAPI Search Results and Visit Product Pages
   - "PAGE CONTENT FOUND: [Brief description of what was on the page]"
   - "SPECIFICATIONS EXTRACTED: [List actual specs found on that page]"
 - Extract detailed product specifications from the actual web pages (not just snippets)
+- Be sure to find a listing for product weight usually written as "weight" or where the result is expressed in "lbs" or "pounds"; do not use placeholder or assumed data as this must be listed on the sites
+- Also be sure to find the manufacturing location which will be expressed as "made in [country]" or "manufactured in [country]" or "Country of origin"
 - Cross-reference information from multiple retailer pages you actually visited
 - Do not use placeholder or assumed data - only use information from pages you actually accessed
 
