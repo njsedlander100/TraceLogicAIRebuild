@@ -121,9 +121,7 @@ Step 4: For each material, determine the primary Manufacturing Process that woul
 
 Step 5: Technical Data and Source Verification
 - Use actual product weight from web pages you visited
-- Apply material densities from general knowledge
-- Calculate weights using: (Actual Total Weight × Volume % × Density Ratio)
-- **VERIFY ALL CALCULATIONS**: Show your math for weight distribution
+- List out material densities from general knowledge
 
 **PERPLEXITY USERS: You MUST actually visit the URLs and confirm what you found on each page. Do not proceed without visiting the actual product pages.**
 
