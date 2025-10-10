@@ -153,7 +153,7 @@ Based on the Product BOM analysis above and this image of the product, provide a
     * Material density (lb/ft³)
     * **CRITICAL LOGIC:** Assume material source countries are geographically and economically close to the manufacturing Country of Origin ({country_of_origin}).
     * Typical source countries for this material type (following the logic above).
-    * Standard CO2 emissions factors (kg CO2e/kg) for sourcing/processing
+    * Standard CO2 emissions factors (kg CO2e/kg) for sourcing/processing in the country that has been identified; make sure this is published and consistent, for e.g. stainless steel is usually in the 5-7 kg Co2e / kg range.
     * Manufacturing process CO2 emissions (kg CO2e/kg)
     * Transportation CO2 factor (kg CO2e/kg-km)
     * **DISTANCE CALCULATION:** Calculate a two-part journey. First, find the distance from the logical source country to **{country_of_origin}**. Second, find the distance from **{country_of_origin}** to the **USA**. Provide the SUM of these two distances.
